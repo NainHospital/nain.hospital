@@ -1,4 +1,3 @@
-<!DOCTYPE html>
   <html lang="th">
   <head>
     <meta charset="UTF-8">
@@ -664,7 +663,17 @@
 
       function renderSummaryCards(data, selectedOsmo) {
         let totalSurvey = 0, totalFound = 0, houseCount = data.length;
-        
+
+        // --- Group by village ---
+        // สร้าง object สำหรับแยกหมู่
+        const villageMap = {};
+        data.forEach(r => {
+          const village = r[villageCol] || r['หมู่'] || r['หมู่ที่'] || 'ไม่ระบุ';
+          if (!villageMap[village]) villageMap[village] = [];
+          villageMap[village].push(r);
+        });
+
+        // --- สรุปภาพรวมทั้งหมด ---
         data.forEach(r => {
           const survey = parseInt(r['รวมสำรวจ']) || 0;
           const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
@@ -675,6 +684,7 @@
         const ci = totalSurvey > 0 ? (totalFound / totalSurvey) * 100 : 0;
         const ciClass = ci > 10 ? 'ci-high' : ci > 5 ? 'ci-medium' : 'ci-low';
 
+        // --- Summary Cards (รวมทุกหมู่) ---
         let summaryHtml = `
           <div class="card">
             <div class="card-title">🏠 จำนวนบ้านที่สำรวจ</div>
@@ -698,6 +708,28 @@
           </div>
         `;
 
+        // --- HI (House Index) รวม ---
+        let houseFound = 0;
+        data.forEach(r => {
+          const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
+          if (found > 0) houseFound++;
+        });
+        const hi = houseCount > 0 ? (houseFound / houseCount) * 100 : 0;
+        const hiClass = hi > 10 ? 'ci-high' : hi > 5 ? 'ci-medium' : 'ci-low';
+
+        summaryHtml += `
+          <div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%); border: 1.5px solid #e0e6ed;">
+            <div class="card-title">🏡 <b>บ้านที่ตรวจพบลูกน้ำ</b></div>
+            <div class="card-value" style="color:#764ba2;">${houseFound}</div>
+            <div class="card-unit">บ้าน</div>
+          </div>
+          <div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%); border: 1.5px solid #e0e6ed;">
+            <div class="card-title"><b>HI (House Index)</b></div>
+            <div class="card-value ${hiClass}">${hi.toFixed(2)}</div>
+            <div class="card-unit">%</div>
+          </div>
+        `;
+
         if (selectedOsmo) {
           summaryHtml += `
           <div class="card">
@@ -707,6 +739,44 @@
           </div>
           `;
         }
+
+        // --- รายงานแยกหมู่ ---
+        summaryHtml += `<div style="grid-column: 1/-1; margin-top:24px;">
+          <h4 style="margin:0 0 10px 0; color:#667eea;">สรุปแยกตามหมู่</h4>
+          <div style="display:flex; flex-wrap:wrap; gap:16px;">`;
+
+        Object.entries(villageMap).forEach(([village, arr]) => {
+          const vHouse = arr.length;
+          let vSurvey = 0, vFound = 0, vHouseFound = 0;
+          arr.forEach(r => {
+            vSurvey += parseInt(r['รวมสำรวจ']) || 0;
+            const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
+            vFound += found;
+            if (found > 0) vHouseFound++;
+          });
+          const vCI = vSurvey > 0 ? (vFound / vSurvey) * 100 : 0;
+          const vHI = vHouse > 0 ? (vHouseFound / vHouse) * 100 : 0;
+          const vCIClass = vCI > 10 ? 'ci-high' : vCI > 5 ? 'ci-medium' : 'ci-low';
+          const vHIClass = vHI > 10 ? 'ci-high' : vHI > 5 ? 'ci-medium' : 'ci-low';
+
+          summaryHtml += `
+            <div class="card" style="min-width:220px; flex:1 1 220px; background:#f8fafc;">
+              <div class="card-title" style="font-weight:bold;">หมู่ ${village}</div>
+              <div style="font-size:1.1em; margin-bottom:6px;">
+                <span>บ้านสำรวจ: <b>${vHouse}</b></span>
+                <span style="margin-left:10px;">บ้านพบลูกน้ำ: <b>${vHouseFound}</b></span>
+              </div>
+              <div>
+                <span style="color:#636e72;">CI: </span>
+                <span class="${vCIClass}" style="font-weight:bold;">${vCI.toFixed(2)}%</span>
+                <span style="margin-left:10px; color:#636e72;">HI: </span>
+                <span class="${vHIClass}" style="font-weight:bold;">${vHI.toFixed(2)}%</span>
+              </div>
+            </div>
+          `;
+        });
+
+        summaryHtml += `</div></div>`;
 
         document.getElementById('summaryCards').innerHTML = summaryHtml;
       }
@@ -797,12 +867,14 @@
           </tr>`;
 
         data.forEach(r => {
-          // บ้านเลขที่: ตรวจสอบชื่อคอลัมน์ตรงๆ และ fallback ด้วยการวนหา key ที่ normalize แล้วตรงกับ 'บ้านเลขที่'
+          // บ้านเลขที่: ตรวจสอบชื่อคอลัมน์ตรงๆ, ถ้าไม่เจอให้วนหา key ที่ normalize แล้วตรงกับ 'บ้านเลขที่' หรือ 'houseNo'
           let houseNo = r[houseNoCol];
           if (!houseNo) {
-            // fallback: หา key ที่ normalize แล้วตรงกับ 'บ้านเลขที่'
             const norm = s => s.replace(/[\s\-_\/]/g, '').toLowerCase();
-            const houseNoKey = Object.keys(r).find(k => norm(k) === norm('บ้านเลขที่'));
+            // ลองทั้งภาษาไทยและอังกฤษ
+            const houseNoKey = Object.keys(r).find(
+              k => norm(k) === norm('บ้านเลขที่') || norm(k) === norm('houseno') || norm(k) === norm('house_no')
+            );
             houseNo = houseNoKey ? r[houseNoKey] : '-';
           }
           if (!houseNo || houseNo === '' || houseNo === undefined) houseNo = '-';
