@@ -1,1003 +1,1265 @@
-<!DOCTYPE html>
-  <html lang="th">
-  <head>
-    <meta charset="UTF-8">
-    <title>Dashboard สำรวจลูกน้ำยุงลาย</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      :root {
-        --primary-color: #667eea;
-        --secondary-color: #764ba2;
-        --success-color: #00b894;
-        --warning-color: #ffd600;
-        --danger-color: #ff3b30;
-        --light-bg: #f8f9fa;
-        --white: #ffffff;
-        --text-dark: #2d3436;
-        --text-muted: #636e72;
-        --border-color: #e0e6ed;
-        --shadow-light: 0 2px 8px rgba(0,0,0,0.07);
-        --shadow-medium: 0 8px 32px rgba(0,0,0,0.1);
-        --shadow-card: 0 4px 20px rgba(102, 126, 234, 0.1);
-        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --gradient-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        --gradient-card: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>บันทึกการสำรวจลูกน้ำยุงลาย</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: "Sarabun", "Noto Sans Thai", Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 10px;
+      font-size: 16px;
+      line-height: 1.4;
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .header p {
+      margin: 8px 0 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    
+    .form-content {
+      padding: 20px;
+    }
+    
+    .house-section {
+      background: #f8f9ff;
+      border: 2px solid #e1e8ff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    
+    .house-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #ddd;
+    }
+    
+    .house-number {
+      background: #667eea;
+      color: white;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .house-input-container {
+      flex: 1;
+      margin-left: 12px;
+    }
+    
+    .house-input-container label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    
+    .house-input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      background: white;
+    }
+    
+    .house-input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .delete-btn {
+      background: #ff4757;
+      color: white;
+      border: none;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .delete-btn:hover {
+      background: #ff3838;
+      transform: scale(1.05);
+    }
+    
+    .categories {
+      display: grid;
+      gap: 16px;
+    }
+    
+    .category-group {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e0e6ed;
+      overflow: hidden;
+    }
+    
+    .category-header {
+      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+      color: white;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    
+    .category-content {
+      padding: 16px;
+    }
+    
+    .location-group {
+      margin-bottom: 16px;
+    }
+    
+    .location-title {
+      font-weight: 600;
+      color: #2d3436;
+      margin-bottom: 8px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .location-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+      background: #74b9ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+    }
+    
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .input-group {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
+    .number-input {
+      width: 100%;
+      padding: 10px;
+      font-size: 18px;
+      border: 2px solid #dee2e6;
+      border-radius: 6px;
+      text-align: center;
+      background: white;
+      font-weight: 600;
+    }
+    
+    .number-input:focus {
+      outline: none;
+      border-color: #74b9ff;
+      box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.1);
+    }
+    
+    .survey-input {
+      border-color: #00b894;
+    }
+    
+    .survey-input:focus {
+      border-color: #00a085;
+      box-shadow: 0 0 0 3px rgba(0, 184, 148, 0.1);
+    }
+    
+    .found-input {
+      border-color: #e17055;
+    }
+    
+    .found-input:focus {
+      border-color: #d63031;
+      box-shadow: 0 0 0 3px rgba(225, 112, 85, 0.1);
+    }
+    
+    .summary-section {
+      background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .summary-title {
+      font-weight: 600;
+      color: #2d3436;
+      margin-bottom: 12px;
+      font-size: 15px;
+      text-align: center;
+    }
+    
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    
+    .summary-item {
+      background: rgba(255,255,255,0.8);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    
+    .summary-item label {
+      display: block;
+      font-size: 12px;
+      color: #636e72;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
+    .summary-input {
+      width: 100%;
+      padding: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      text-align: center;
+      border: 2px solid #fdcb6e;
+      border-radius: 6px;
+      background: white;
+      color: #2d3436;
+    }
+    
+    .summary-input:focus {
+      outline: none;
+      border-color: #e17055;
+      box-shadow: 0 0 0 3px rgba(225, 112, 85, 0.1);
+    }
+    
+    .button-container {
+      padding: 20px;
+      background: #f8f9fa;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .btn {
+      flex: 1;
+      min-height: 50px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .btn-add {
+      background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+      color: white;
+    }
+    
+    .btn-submit {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-reset {
+      background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+      color: white;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      color: #667eea;
+    }
+    
+    .success-message {
+      display: none;
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px;
+      text-align: center;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .error-message {
+      display: none;
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px;
+      text-align: center;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .surveyor-info {
+      background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+      padding: 20px;
+      border-bottom: 3px solid #28a745;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 16px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .info-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .info-group label {
+      font-weight: 600;
+      color: #2d5016;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    
+    .info-group select,
+    .info-group input[type="text"] {
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #28a745;
+      border-radius: 8px;
+      background: white;
+      color: #2d5016;
+      font-weight: 500;
+    }
+    
+    .info-group select:focus,
+    .info-group input[type="text"]:focus {
+      outline: none;
+      border-color: #20c997;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+    }
+    
+    .info-group input[type="date"] {
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #6c757d;
+      border-radius: 8px;
+      background: #f8f9fa;
+      color: #495057;
+      font-weight: 500;
+    }
+    
+    .address-text {
+      padding: 12px;
+      background: rgba(255,255,255,0.8);
+      border: 2px solid #6c757d;
+      border-radius: 8px;
+      color: #495057;
+      font-weight: 500;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .ci-circle-container {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      margin: 0 auto;
+    }
+    .ci-circle {
+      display: block;
+      transform: rotate(-90deg);
+    }
+    .ci-text {
+      position: absolute;
+      top: 0; left: 0; width: 60px; height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 1.1em;
+      color: #00b894;
+      pointer-events: none;
+    }
+    
+    /* Highlight required fields if empty */
+    .required-highlight {
+      border-color: #ff3b30 !important;
+      background: #fff6f6 !important;
+      box-shadow: 0 0 0 2px #ffb3b3 !important;
+    }
+    .required-label {
+      color: #ff3b30 !important;
+      font-weight: bold;
+    }
+    
+    @media (max-width: 768px) {
       body {
-        font-family: "Sarabun", "Noto Sans Thai", Arial, sans-serif;
-        background: var(--gradient-bg);
-        margin: 0;
-        padding: 20px;
-        min-height: 100vh;
-        color: var(--text-dark);
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        background: var(--white);
-        border-radius: 20px;
-        box-shadow: var(--shadow-medium);
-        overflow: hidden;
-      }
-
-      .header {
-        background: var(--gradient-primary);
-        color: white;
-        padding: 30px 20px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="10" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-        animation: float 20s infinite linear;
-      }
-
-      @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0px); }
-      }
-
-      .header h1 {
-        margin: 0;
-        font-size: 2.2em;
-        font-weight: 600;
-        position: relative;
-        z-index: 1;
-      }
-
-      .header .subtitle {
-        margin: 10px 0 0 0;
-        font-size: 1.1em;
-        opacity: 0.9;
-        font-weight: 300;
-        position: relative;
-        z-index: 1;
-      }
-
-      .controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        margin: 30px 20px;
-        flex-wrap: wrap;
-        background: var(--gradient-card);
-        padding: 25px;
-        border-radius: 15px;
-        box-shadow: var(--shadow-light);
-        border: 1px solid rgba(102, 126, 234, 0.1);
-      }
-
-      .control-group {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        min-width: 180px;
-      }
-
-      label {
-        font-weight: 600;
-        color: var(--text-dark);
-        font-size: 0.95em;
-        letter-spacing: 0.3px;
-      }
-
-      select, input[type="date"] {
-        padding: 12px 16px;
-        border-radius: 10px;
-        border: 2px solid transparent;
-        background: var(--white);
+        padding: 5px;
         font-size: 16px;
-        font-family: inherit;
-        transition: all 0.3s ease;
-        box-shadow: var(--shadow-light);
-        outline: none;
       }
-
-      select:focus, input[type="date"]:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        transform: translateY(-1px);
+      
+      .header h1 {
+        font-size: 18px;
       }
-
-      select:hover, input[type="date"]:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      
+      .form-content {
+        padding: 15px;
       }
-
-      .loading {
-        display: none;
-        align-items: center;
-        gap: 10px;
-        color: var(--primary-color);
-        font-weight: 500;
-        padding: 10px 20px;
-        background: rgba(102, 126, 234, 0.1);
-        border-radius: 25px;
-        animation: pulse 2s infinite;
+      
+      .number-input {
+        font-size: 16px;
+        padding: 12px;
       }
-
-      @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.7; }
+      
+      .btn {
+        min-height: 45px;
+        font-size: 15px;
       }
-
-      .summary-cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin: 30px 20px;
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
       }
-
-      .card {
-        background: var(--gradient-card);
-        border-radius: 15px;
-        padding: 25px;
-        text-align: center;
-        box-shadow: var(--shadow-card);
-        border: 1px solid rgba(102, 126, 234, 0.1);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+      
+      .surveyor-info {
+        padding: 15px;
       }
-
-      .card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: var(--gradient-primary);
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-      }
-
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-      }
-
-      .card:hover::before {
-        transform: translateX(0);
-      }
-
-      .card-title {
-        font-size: 0.95em;
-        color: var(--text-muted);
-        margin-bottom: 10px;
-        font-weight: 500;
-        letter-spacing: 0.3px;
-      }
-
-      .card-value {
-        font-size: 2.5em;
-        font-weight: 700;
-        color: var(--text-dark);
-        margin-bottom: 5px;
-      }
-
-      .card-unit {
-        font-size: 0.85em;
-        color: var(--text-muted);
-        font-weight: 400;
-      }
-
-      .ci-high { color: var(--danger-color) !important; }
-      .ci-medium { color: var(--warning-color) !important; }
-      .ci-low { color: var(--success-color) !important; }
-
-      .chart-container {
-        margin: 30px 20px;
-        background: var(--white);
-        border-radius: 15px;
-        box-shadow: var(--shadow-light);
-        padding: 20px;
-        border: 1px solid var(--border-color);
-      }
-
-      .chart-title {
-        font-size: 1.3em;
-        font-weight: 600;
-        color: var(--text-dark);
-        margin-bottom: 20px;
-        text-align: center;
-      }
-
-      #chart_div {
-        width: 100%;
-        min-height: 400px;
-        border-radius: 10px;
-      }
-
-      .table-container {
-        margin: 30px 20px 20px 20px;
-        background: var(--white);
-        border-radius: 15px;
-        box-shadow: var(--shadow-light);
-        overflow: hidden;
-        border: 1px solid var(--border-color);
-      }
-
-      .table-title {
-        font-size: 1.3em;
-        font-weight: 600;
-        color: var(--text-dark);
-        padding: 20px;
-        background: var(--light-bg);
-        margin: 0;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      .table-wrapper {
-        overflow-x: auto;
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.9em;
-      }
-
-      th, td {
-        padding: 12px 8px;
-        text-align: center;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      th {
-        background: var(--gradient-primary);
-        color: white;
-        font-weight: 600;
-        font-size: 0.85em;
-        letter-spacing: 0.3px;
-        text-transform: uppercase;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
-
-      tr:nth-child(even) {
-        background: rgba(248, 249, 250, 0.5);
-      }
-
-      tr:hover {
-        background: rgba(102, 126, 234, 0.05);
-      }
-
-      .error-message {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
-        color: white;
-        padding: 20px;
-        margin: 20px;
-        border-radius: 10px;
-        text-align: center;
-        font-weight: 500;
-        box-shadow: var(--shadow-light);
-      }
-
-      .no-data {
-        text-align: center;
-        padding: 40px 20px;
-        color: var(--text-muted);
-        font-size: 1.1em;
-      }
-
-      .footer {
-        padding: 20px;
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.9em;
-        border-top: 1px solid var(--border-color);
-        background: var(--light-bg);
-      }
-
-      @media (max-width: 768px) {
-        body {
-          padding: 10px;
-        }
-        
-        .header h1 {
-          font-size: 1.8em;
-        }
-        
-        .controls {
-          flex-direction: column;
-          align-items: stretch;
-        }
-        
-        .control-group {
-          min-width: auto;
-        }
-        
-        .summary-cards {
-          grid-template-columns: 1fr;
-        }
-        
-        .card-value {
-          font-size: 2.2em;
-        }
-        
-        th, td {
-          padding: 8px 4px;
-          font-size: 0.8em;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .header {
-          padding: 20px 15px;
-        }
-        
-        .header h1 {
-          font-size: 1.5em;
-        }
-        
-        .controls, .chart-container, .table-container {
-          margin: 20px 10px;
-        }
-        
-        .summary-cards {
-          margin: 20px 10px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h1>📊 Dashboard สำรวจลูกน้ำยุงลาย</h1>
-        <p class="subtitle">ระบบติดตามและวิเคราะห์ข้อมูลการสำรวจ</p>
-      </div>
-
-      <div class="controls">
-        <div class="control-group">
-          <label for="dateSelect">📅 เลือกวันที่:</label>
-          <input type="date" id="dateSelect">
-        </div>
-        <div class="control-group">
-          <label for="osmoSelect">👤 ชื่อ อสม:</label>
-          <select id="osmoSelect">
-            <option value="">กำลังโหลด...</option>
-          </select>
-        </div>
-        <div class="loading" id="loading">
-          <span>⏳</span>
-          <span>กำลังโหลดข้อมูล...</span>
-        </div>
-      </div>
-
-      <div class="summary-cards" id="summaryCards">
-        <!-- Summary cards will be populated here -->
-      </div>
-
-      <div class="chart-container">
-        <h3 class="chart-title">📈 Container Index (CI) แยกตามหมู่บ้าน</h3>
-        <div id="chart_div"></div>
-      </div>
-
-      <div class="table-container">
-        <h3 class="table-title">📋 รายละเอียดการสำรวจ</h3>
-        <div class="table-wrapper">
-          <div id="table_div"></div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <p>💡 <strong>คำแนะนำ:</strong> ค่า CI ที่สูงกว่า 10% ถือว่าอยู่ในระดับเสี่ยงสูง | ระบบอัพเดทข้อมูลแบบเรียลไทม์</p>
-      </div>
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📋 บันทึกการสำรวจลูกน้ำยุงลาย</h1>
+      <p>รพ.สต.นาอิน</p>
     </div>
-
-    <script>
-      // กำหนดค่า Google Sheet
-      const SHEET_ID = '15r7y6xwbVB4_cc6IMTqmsV93JHXQqHIIdQbn9kMAF3A';
-      const SHEET_NAME = 'Sheet1ID178';
-      const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
-
-      let rawData = [];
-      let dateList = [];
-      let osmoList = [];
-      let currentDateCol = null;
-      let currentOsmoCol = null;
-      // เพิ่มตัวแปรสำหรับคอลัมน์บ้านเลขที่และหมู่
-      let houseNoCol = null;
-      let villageCol = null;
-
-      // โหลด Google Charts
-      google.charts.load('current', {
-        'packages': ['corechart', 'table'],
-        'language': 'th'
-      });
-      google.charts.setOnLoadCallback(init);
-
-      function init() {
-        showLoading(true);
-        fetchData();
-      }
-
-      function showLoading(show) {
-        const loading = document.getElementById('loading');
-        loading.style.display = show ? 'flex' : 'none';
-      }
-
-      function showError(message) {
-        const container = document.querySelector('.container');
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.innerHTML = `
-          <h3>⚠️ เกิดข้อผิดพลาด</h3>
-          <p>${message}</p>
-          <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; background: white; color: #ff6b6b; border: none; border-radius: 5px; cursor: pointer;">ลองใหม่</button>
-        `;
-        container.insertBefore(errorDiv, container.children[1]);
-      }
-
-      function fetchData() {
-        const query = new google.visualization.Query(sheetUrl);
-        query.send(function(response) {
-          showLoading(false);
+    
+    <form id="surveyForm">
+      <div class="surveyor-info">
+        <div class="info-grid">
+          <div class="info-group">
+            <label for="village" id="label-village">หมู่ที่ <span style="color:#ff3b30">*</span></label>
+            <select id="village" name="village" required>
+              <option value="">เลือกหมู่</option>
+              <option value="1">หมู่ 1</option>
+              <option value="2">หมู่ 2</option>
+              <option value="3">หมู่ 3</option>
+              <option value="4">หมู่ 4</option>
+              <option value="5">หมู่ 5</option>
+              <option value="6">หมู่ 6</option>
+              <option value="7">หมู่ 7</option>
+            </select>
+          </div>
           
-          if (response.isError()) {
-            console.error('Error fetching data:', response.getMessage());
-            showError(`ไม่สามารถโหลดข้อมูลได้: ${response.getMessage()}<br><br>
-              <small>โปรดตรวจสอบ:<br>
-              • การเชื่อมต่ออินเทอร์เน็ต<br>
-              • การตั้งค่าการแชร์ Google Sheet (ต้องเป็น "Anyone with the link can view")<br>
-              • SHEET_ID และ SHEET_NAME ในโค้ด</small>`);
-            return;
-          }
-
-          try {
-            const dataTable = response.getDataTable();
-            const cols = [];
-            
-            for (let i = 0; i < dataTable.getNumberOfColumns(); i++) {
-              cols.push(dataTable.getColumnLabel(i));
-            }
-            
-            const rows = [];
-            for (let i = 0; i < dataTable.getNumberOfRows(); i++) {
-              const row = [];
-              for (let j = 0; j < cols.length; j++) {
-                row.push(dataTable.getValue(i, j));
-              }
-              rows.push(row);
-            }
-
-            rawData = rows.map(row => {
-              let obj = {};
-              cols.forEach((col, i) => obj[col] = row[i]);
-              return obj;
-            });
-
-            console.log('Columns found:', cols);
-            console.log('Sample data:', rawData.slice(0, 2));
-
-            // หาคอลัมน์วันที่และผู้สำรวจ
-            currentDateCol = findColumn(cols, ['วันที่สำรวจ', 'วันที่', 'surveyDate']);
-            currentOsmoCol = findColumn(cols, ['ผู้สำรวจ', 'อสม', 'surveyor']);
-
-            // เพิ่มตัวแปรสำหรับคอลัมน์บ้านเลขที่และหมู่
-            houseNoCol = findColumn(cols, ['บ้านเลขที่', 'houseNos', 'เลขที่', 'house_no']);
-            villageCol = findColumn(cols, ['หมู่', 'village', 'หมู่ที่', 'village_no']);
-
-            if (!currentDateCol || !currentOsmoCol || !houseNoCol || !villageCol) {
-              throw new Error(`ไม่พบคอลัมน์ที่จำเป็น: วันที่=${currentDateCol}, ผู้สำรวจ=${currentOsmoCol}, บ้านเลขที่=${houseNoCol}, หมู่=${villageCol}`);
-            }
-
-            processDateData();
-            renderDateSelect();
-            
-          } catch (error) {
-            console.error('Error processing data:', error);
-            showError(`เกิดข้อผิดพลาดในการประมวลผลข้อมูล: ${error.message}`);
-          }
-        });
-      }
-
-      function findColumn(cols, possibleNames) {
-        for (let name of possibleNames) {
-          const found = cols.find(col => 
-            col.replace(/\s/g, '').toLowerCase().includes(name.replace(/\s/g, '').toLowerCase())
-          );
-          if (found) return found;
-        }
-        return null;
-      }
-
-      function processDateData() {
-        const validDates = rawData
-          .map(r => r[currentDateCol])
-          .filter(Boolean)
-          .map(raw => {
-            const d = new Date(raw);
-            if (isNaN(d.getTime())) return null;
-            
-            const yyyy = d.getFullYear();
-            const mm = (d.getMonth() + 1).toString().padStart(2, '0');
-            const dd = d.getDate().toString().padStart(2, '0');
-            
-            return { raw, date: `${yyyy}-${mm}-${dd}` };
-          })
-          .filter(Boolean);
-
-        dateList = [...new Map(validDates.map(item => [item.date, item])).values()]
-          .sort((a, b) => b.date.localeCompare(a.date));
-      }
-
-      function renderDateSelect() {
-        const input = document.getElementById('dateSelect');
-        
-        if (!dateList.length) {
-          input.disabled = true;
-          input.value = '';
-          renderOsmoSelect();
-          return;
-        }
-
-        input.disabled = false;
-        input.min = dateList[dateList.length - 1].date;
-        input.max = dateList[0].date;
-        
-        if (!input.value || input.value < input.min || input.value > input.max) {
-          input.value = dateList[0].date;
-        }
-
-        input.removeEventListener('change', renderOsmoSelect);
-        input.addEventListener('change', renderOsmoSelect);
-        
-        renderOsmoSelect();
-      }
-
-      function renderOsmoSelect() {
-        const dateInput = document.getElementById('dateSelect');
-        const selectedDate = dateInput.value;
-        
-        if (!selectedDate) {
-          document.getElementById('summaryCards').innerHTML = '<div class="no-data">กรุณาเลือกวันที่</div>';
-          return;
-        }
-
-        const filteredData = rawData.filter(r => {
-          const d = new Date(r[currentDateCol]);
-          if (isNaN(d.getTime())) return false;
+          <div class="info-group">
+            <label>ที่อยู่</label>
+            <div class="address-text">ตำบลนาอิน อำเภอพิชัย จังหวัดอุตรดิตถ์</div>
+          </div>
           
-          const yyyy = d.getFullYear();
-          const mm = (d.getMonth() + 1).toString().padStart(2, '0');
-          const dd = d.getDate().toString().padStart(2, '0');
-          const dateStr = `${yyyy}-${mm}-${dd}`;
+          <div class="info-group">
+            <label for="surveyor" id="label-surveyor">ผู้สำรวจ <span style="color:#ff3b30">*</span></label>
+            <select id="surveyor" name="surveyor" required>
+              <option value="">เลือกผู้สำรวจ</option>
+              <!-- รายชื่อจะถูกเติมโดย JS -->
+            </select>
+          </div>
           
-          return dateStr === selectedDate;
-        });
+          <div class="info-group">
+            <label for="surveyDate">วันที่สำรวจ</label>
+            <input type="date" id="surveyDate" name="surveyDate" readonly>
+          </div>
+        </div>
+      </div>
+      
+      <div class="success-message" id="successMessage">
+        ✅ ส่งข้อมูลเรียบร้อยแล้ว ขอบคุณครับ!
+      </div>
+      
+      <div class="error-message" id="errorMessage">
+        ❌ เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง
+      </div>
+      
+      <div class="loading" id="loading">
+        ⏳ กำลังส่งข้อมูล...
+      </div>
+      
+      <div class="form-content" id="formContent">
+        <!-- แถวข้อมูลจะถูกเพิ่มที่นี่ -->
+      </div>
+      
+      <div class="button-container">
+        <button type="button" class="btn btn-add" id="addRowBtn">
+          ➕ เพิ่มบ้าน
+        </button>
+        <button type="button" class="btn btn-reset" id="resetBtn">
+          🔄 ล้างข้อมูล
+        </button>
+        <button type="submit" class="btn btn-submit">
+          📤 ส่งข้อมูล
+        </button>
+      </div>
+    </form>
+  </div>
 
-        osmoList = [...new Set(filteredData.map(r => r[currentOsmoCol]).filter(Boolean))];
+  <script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbw_7jnj0dI58l0A1cz0f4Z8MZAqE7RdAIjmx0rAINATfkpfkBXJH1g38ElgltS-AAG43A/exec';
+    const formContent = document.getElementById('formContent');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const loading = document.getElementById('loading');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    
+    let rowCounter = 0;
+    
+    const categories = [
+      { key: 'use', name: 'น้ำใช้', icon: '🚿' },
+      { key: 'drink', name: 'น้ำดื่ม', icon: '🥤' },
+      { key: 'toilet', name: 'ห้องน้ำ', icon: '🚽' },
+      { key: 'flower', name: 'แจกัน/กระถาง', icon: '🌺' },
+      { key: 'other', name: 'อื่นๆ', icon: '📦' }
+    ];
+    
+    function createHouseSection(houseNum) {
+      const section = document.createElement('div');
+      section.className = 'house-section';
+      section.dataset.houseNum = houseNum;
+
+      section.innerHTML = `
+        <div class="house-header">
+          <div class="house-number">${houseNum}</div>
+          <div class="house-input-container">
+            <label for="houseNo_${houseNum}" id="label-houseNo_${houseNum}">บ้านเลขที่ <span style="color:#ff3b30">*</span></label>
+            <input type="text" 
+                   class="house-input" 
+                   id="houseNo_${houseNum}"
+                   name="houseNo_${houseNum}" 
+                   placeholder="เช่น 123/45"
+                   required>
+          </div>
+          ${houseNum > 1 ? `<button type="button" class="delete-btn" onclick="deleteHouse(${houseNum})" title="ลบบ้านนี้">×</button>` : ''}
+        </div>
         
-        const select = document.getElementById('osmoSelect');
-        select.innerHTML = '<option value="">ทั้งหมด</option>';
-        
-        osmoList.forEach(osmo => {
-          const option = document.createElement('option');
-          option.value = osmo;
-          option.textContent = osmo;
-          select.appendChild(option);
-        });
-
-        select.removeEventListener('change', renderDashboard);
-        select.addEventListener('change', renderDashboard);
-        select.value = '';
-        
-        renderDashboard();
-      }
-
-      function renderDashboard() {
-        const dateInput = document.getElementById('dateSelect');
-        const osmoSelect = document.getElementById('osmoSelect');
-        const selectedDate = dateInput.value;
-        const selectedOsmo = osmoSelect.value;
-
-        if (!selectedDate) return;
-
-        let filteredData = rawData.filter(r => {
-          const d = new Date(r[currentDateCol]);
-          if (isNaN(d.getTime())) return false;
-          
-          const yyyy = d.getFullYear();
-          const mm = (d.getMonth() + 1).toString().padStart(2, '0');
-          const dd = d.getDate().toString().padStart(2, '0');
-          const dateStr = `${yyyy}-${mm}-${dd}`;
-          
-          return dateStr === selectedDate;
-        });
-
-        if (selectedOsmo) {
-          filteredData = filteredData.filter(r => r[currentOsmoCol] === selectedOsmo);
-        }
-
-        if (filteredData.length === 0) {
-          document.getElementById('summaryCards').innerHTML = '<div class="no-data">ไม่พบข้อมูลในวันที่เลือก</div>';
-          document.getElementById('chart_div').innerHTML = '';
-          document.getElementById('table_div').innerHTML = '';
-          return;
-        }
-
-        renderSummaryCards(filteredData, selectedOsmo);
-        renderChart(filteredData);
-        renderTable(filteredData);
-      }
-
-      function renderSummaryCards(data, selectedOsmo) {
-        let totalSurvey = 0, totalFound = 0, houseCount = data.length;
-
-        // --- Group by village ---
-        // สร้าง object สำหรับแยกหมู่
-        const villageMap = {};
-        data.forEach(r => {
-          const village = r[villageCol] || r['หมู่'] || r['หมู่ที่'] || 'ไม่ระบุ';
-          if (!villageMap[village]) villageMap[village] = [];
-          villageMap[village].push(r);
-        });
-
-        // --- สรุปภาพรวมทั้งหมด ---
-        data.forEach(r => {
-          const survey = parseInt(r['รวมสำรวจ']) || 0;
-          const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
-          totalSurvey += survey;
-          totalFound += found;
-        });
-
-        const ci = totalSurvey > 0 ? (totalFound / totalSurvey) * 100 : 0;
-        const ciClass = ci > 10 ? 'ci-high' : ci > 5 ? 'ci-medium' : 'ci-low';
-
-        // --- Summary Cards (รวมทุกหมู่) ---
-        let summaryHtml = `
-          <div class="card">
-            <div class="card-title">🏠 จำนวนบ้านที่สำรวจ</div>
-            <div class="card-value">${houseCount}</div>
-            <div class="card-unit">บ้าน</div>
-          </div>
-          <div class="card">
-            <div class="card-title">🔍 รวมสำรวจทั้งหมด</div>
-            <div class="card-value">${totalSurvey}</div>
-            <div class="card-unit">ภาชนะ</div>
-          </div>
-          <div class="card">
-            <div class="card-title">🦟 รวมพบลูกน้ำ</div>
-            <div class="card-value">${totalFound}</div>
-            <div class="card-unit">ภาชนะ</div>
-          </div>
-          <div class="card">
-            <div class="card-title">📊 Container Index (CI)</div>
-            <div class="card-value ${ciClass}">${ci.toFixed(2)}</div>
-            <div class="card-unit">%</div>
-          </div>
-        `;
-
-        // --- HI (House Index) รวม ---
-        let houseFound = 0;
-        data.forEach(r => {
-          const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
-          if (found > 0) houseFound++;
-        });
-        const hi = houseCount > 0 ? (houseFound / houseCount) * 100 : 0;
-        const hiClass = hi > 10 ? 'ci-high' : hi > 5 ? 'ci-medium' : 'ci-low';
-
-        summaryHtml += `
-          <div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%); border: 1.5px solid #e0e6ed;">
-            <div class="card-title">🏡 <b>บ้านที่ตรวจพบลูกน้ำ</b></div>
-            <div class="card-value" style="color:#764ba2;">${houseFound}</div>
-            <div class="card-unit">บ้าน</div>
-          </div>
-          <div class="card" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%); border: 1.5px solid #e0e6ed;">
-            <div class="card-title"><b>HI (House Index)</b></div>
-            <div class="card-value ${hiClass}">${hi.toFixed(2)}</div>
-            <div class="card-unit">%</div>
-          </div>
-        `;
-
-        if (selectedOsmo) {
-          summaryHtml += `
-          <div class="card">
-            <div class="card-title">👤 ${selectedOsmo}</div>
-            <div class="card-value">${houseCount}</div>
-            <div class="card-unit">บ้านที่สำรวจ</div>
-          </div>
-          `;
-        }
-
-        // --- รายงานแยกหมู่ ---
-        summaryHtml += `<div style="grid-column: 1/-1; margin-top:24px;">
-          <h4 style="margin:0 0 10px 0; color:#667eea;">สรุปแยกตามหมู่</h4>
-          <div style="display:flex; flex-wrap:wrap; gap:16px;">`;
-
-        Object.entries(villageMap).forEach(([village, arr]) => {
-          const vHouse = arr.length;
-          let vSurvey = 0, vFound = 0, vHouseFound = 0;
-          arr.forEach(r => {
-            vSurvey += parseInt(r['รวมสำรวจ']) || 0;
-            const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
-            vFound += found;
-            if (found > 0) vHouseFound++;
-          });
-          const vCI = vSurvey > 0 ? (vFound / vSurvey) * 100 : 0;
-          const vHI = vHouse > 0 ? (vHouseFound / vHouse) * 100 : 0;
-          const vCIClass = vCI > 10 ? 'ci-high' : vCI > 5 ? 'ci-medium' : 'ci-low';
-          const vHIClass = vHI > 10 ? 'ci-high' : vHI > 5 ? 'ci-medium' : 'ci-low';
-
-          summaryHtml += `
-            <div class="card" style="min-width:220px; flex:1 1 220px; background:#f8fafc;">
-              <div class="card-title" style="font-weight:bold;">หมู่ ${village}</div>
-              <div style="font-size:1.1em; margin-bottom:6px;">
-                <span>บ้านสำรวจ: <b>${vHouse}</b></span>
-                <span style="margin-left:10px;">บ้านพบลูกน้ำ: <b>${vHouseFound}</b></span>
-              </div>
-              <div>
-                <span style="color:#636e72;">CI: </span>
-                <span class="${vCIClass}" style="font-weight:bold;">${vCI.toFixed(2)}%</span>
-                <span style="margin-left:10px; color:#636e72;">HI: </span>
-                <span class="${vHIClass}" style="font-weight:bold;">${vHI.toFixed(2)}%</span>
-              </div>
+        <div class="categories">
+          <div class="category-group">
+            <div class="category-header">🏠 ในอาคาร</div>
+            <div class="category-content">
+              ${categories.map(cat => cat.key === 'other' ? `
+                <div class="location-group">
+                  <div class="input-group" style="margin-bottom:8px;">
+                    <label>รายละเอียดอื่นๆ</label>
+                    <input type="text" 
+                           class="number-input"
+                           name="in_other_detail_${houseNum}"
+                           placeholder="ระบุรายละเอียด">
+                  </div>
+                  <div class="location-title">
+                    <span class="location-icon">${cat.icon}</span>
+                    ${cat.name}
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label>สำรวจ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input survey-input" 
+                             name="in_${cat.key}_survey_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                    <div class="input-group">
+                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input found-input" 
+                             name="in_${cat.key}_found_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                  </div>
+                </div>
+              ` : `
+                <div class="location-group">
+                  <div class="location-title">
+                    <span class="location-icon">${cat.icon}</span>
+                    ${cat.name}
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label>สำรวจ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input survey-input" 
+                             name="in_${cat.key}_survey_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                    <div class="input-group">
+                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input found-input" 
+                             name="in_${cat.key}_found_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
             </div>
-          `;
-        });
-
-        summaryHtml += `</div></div>`;
-
-        document.getElementById('summaryCards').innerHTML = summaryHtml;
-      }
-
-      function renderChart(data) {
-        const byVillage = {};
+          </div>
+          
+          <div class="category-group">
+            <div class="category-header">🌳 นอกอาคาร</div>
+            <div class="category-content">
+              ${categories.map(cat => cat.key === 'other' ? `
+                <div class="location-group">
+                  <div class="input-group" style="margin-bottom:8px;">
+                    <label>รายละเอียดอื่นๆ</label>
+                    <input type="text" 
+                           class="number-input"
+                           name="out_other_detail_${houseNum}"
+                           placeholder="ระบุรายละเอียด">
+                  </div>
+                  <div class="location-title">
+                    <span class="location-icon">${cat.icon}</span>
+                    ${cat.name}
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label>สำรวจ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input survey-input" 
+                             name="out_${cat.key}_survey_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                    <div class="input-group">
+                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input found-input" 
+                             name="out_${cat.key}_found_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                  </div>
+                </div>
+              ` : `
+                <div class="location-group">
+                  <div class="location-title">
+                    <span class="location-icon">${cat.icon}</span>
+                    ${cat.name}
+                  </div>
+                  <div class="input-row">
+                    <div class="input-group">
+                      <label>สำรวจ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input survey-input" 
+                             name="out_${cat.key}_survey_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                    <div class="input-group">
+                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <input type="number" 
+                             class="number-input found-input" 
+                             name="out_${cat.key}_found_${houseNum}"
+                             min="0" 
+                             value="0"
+                             onchange="calculateSummary(${houseNum})">
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
         
-        data.forEach(r => {
-          const village = r['หมู่ที่'] || r['หมู่'] || 'ไม่ระบุ';
-          const survey = parseInt(r['รวมสำรวจ']) || 0;
-          const found = parseInt(r['รวมพบลูกน้ำ']) || 0;
-          
-          if (!byVillage[village]) {
-            byVillage[village] = { survey: 0, found: 0, count: 0 };
-          }
-          
-          byVillage[village].survey += survey;
-          byVillage[village].found += found;
-          byVillage[village].count++;
-        });
-
-        const chartData = new google.visualization.DataTable();
-        chartData.addColumn('string', 'หมู่ที่');
-        chartData.addColumn('number', 'CI (%)');
-        chartData.addColumn({ type: 'string', role: 'style' });
-
-        Object.entries(byVillage).forEach(([village, val]) => {
-          const ci = val.survey > 0 ? (val.found / val.survey) * 100 : 0;
-          const color = ci > 10 ? '#ff3b30' : ci > 5 ? '#ffd600' : '#00b894';
-          chartData.addRow([`หมู่ ${village}`, ci, color]);
-        });
-
-        const options = {
-          title: '',
-          height: 400,
-          legend: { position: 'none' },
-          hAxis: {
-            title: 'หมู่บ้าน',
-            titleTextStyle: { color: '#636e72', fontSize: 12 }
-          },
-          vAxis: {
-            title: 'Container Index (%)',
-            titleTextStyle: { color: '#636e72', fontSize: 12 },
-            minValue: 0,
-            maxValue: Math.max(20, Math.max(...Object.values(byVillage).map(v => 
-              v.survey > 0 ? (v.found / v.survey) * 100 : 0
-            )) + 5)
-          },
-          backgroundColor: 'transparent',
-          chartArea: { left: 60, top: 20, width: '85%', height: '75%' },
-          bar: { groupWidth: '70%' }
-        };
-
-        const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-        chart.draw(chartData, options);
-      }
-
-      function renderTable(data) {
-        if (data.length === 0) {
-          document.getElementById('table_div').innerHTML = '<div class="no-data">ไม่มีข้อมูลที่จะแสดง</div>';
-          return;
-        }
-
-        let html = `<table>
-          <tr>
-            <th rowspan="2">บ้านเลขที่</th>
-            <th rowspan="2">หมู่</th>
-            <th rowspan="2">ผู้สำรวจ</th>
-            <th colspan="6">ในอาคาร</th>
-            <th colspan="6">นอกอาคาร</th>
-            <th rowspan="2">รวมสำรวจ</th>
-            <th rowspan="2">รวมพบลูกน้ำ</th>
-            <th rowspan="2">CI (%)</th>
-          </tr>
-          <tr>
-            <th>น้ำใช้</th>
-            <th>น้ำดื่ม</th>
-            <th>ห้องน้ำ</th>
-            <th>แจกัน/กระถาง</th>
-            <th>อื่นๆ</th>
-            <th>อื่นๆ รายละเอียด</th>
-            <th>น้ำใช้</th>
-            <th>น้ำดื่ม</th>
-            <th>ห้องน้ำ</th>
-            <th>แจกัน/กระถาง</th>
-            <th>อื่นๆ</th>
-            <th>อื่นๆ รายละเอียด</th>
-          </tr>`;
-
-        data.forEach(r => {
-          // บ้านเลขที่: ตรวจสอบชื่อคอลัมน์ตรงๆ, ถ้าไม่เจอให้วนหา key ที่ normalize แล้วตรงกับ 'บ้านเลขที่' หรือ 'houseNo'
-          let houseNo = r[houseNoCol];
-          if (!houseNo) {
-            const norm = s => s.replace(/[\s\-_\/]/g, '').toLowerCase();
-            // ลองทั้งภาษาไทยและอังกฤษ
-            const houseNoKey = Object.keys(r).find(
-              k => norm(k) === norm('บ้านเลขที่') || norm(k) === norm('houseno') || norm(k) === norm('house_no')
-            );
-            houseNo = houseNoKey ? r[houseNoKey] : '-';
-          }
-          if (!houseNo || houseNo === '' || houseNo === undefined) houseNo = '-';
-
-          const village = r[villageCol] || '-';
-          const surveyor = r[currentOsmoCol] || '-';
-
-          const inUse = `${Number(r['ในอาคาร-น้ำใช้-สำรวจ']) || 0}/${Number(r['ในอาคาร-น้ำใช้-พบลูกน้ำ']) || 0}`;
-          const inDrink = `${Number(r['ในอาคาร-น้ำดื่ม-สำรวจ']) || 0}/${Number(r['ในอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0}`;
-          const inToilet = `${Number(r['ในอาคาร-ห้องน้ำ-สำรวจ']) || 0}/${Number(r['ในอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0}`;
-          const inFlower = `${Number(r['ในอาคาร-แจกันกระถาง-สำรวจ']) || 0}/${Number(r['ในอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0}`;
-          const inOther = `${Number(r['ในอาคาร-อื่นๆ-สำรวจ']) || 0}/${Number(r['ในอาคาร-อื่นๆ-พบลูกน้ำ']) || 0}`;
-          const inOtherDesc = r['ในอาคาร-อื่นๆ-รายละเอียด'] || '';
-
-          const outUse = `${Number(r['นอกอาคาร-น้ำใช้-สำรวจ']) || 0}/${Number(r['นอกอาคาร-น้ำใช้-พบลูกน้ำ']) || 0}`;
-          const outDrink = `${Number(r['นอกอาคาร-น้ำดื่ม-สำรวจ']) || 0}/${Number(r['นอกอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0}`;
-          const outToilet = `${Number(r['นอกอาคาร-ห้องน้ำ-สำรวจ']) || 0}/${Number(r['นอกอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0}`;
-          const outFlower = `${Number(r['นอกอาคาร-แจกันกระถาง-สำรวจ']) || 0}/${Number(r['นอกอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0}`;
-          const outOther = `${Number(r['นอกอาคาร-อื่นๆ-สำรวจ']) || 0}/${Number(r['นอกอาคาร-อื่นๆ-พบลูกน้ำ']) || 0}`;
-          const outOtherDesc = r['นอกอาคาร-อื่นๆ-รายละเอียด'] || '';
-
-          const totalSurvey = Number(r['รวมสำรวจ']) || 0;
-          const totalFound = Number(r['รวมพบลูกน้ำ']) || 0;
-          const ci = totalSurvey > 0 ? (totalFound / totalSurvey) * 100 : 0;
-          const ciClass = ci > 10 ? 'ci-high' : ci > 5 ? 'ci-medium' : 'ci-low';
-
-          html += `
-          <tr>
-            <td><strong>${houseNo}</strong></td>
-            <td>${village}</td>
-            <td>${surveyor}</td>
-            <td>${inUse}</td>
-            <td>${inDrink}</td>
-            <td>${inToilet}</td>
-            <td>${inFlower}</td>
-            <td>${inOther}</td>
-            <td>${inOtherDesc}</td>
-            <td>${outUse}</td>
-            <td>${outDrink}</td>
-            <td>${outToilet}</td>
-            <td>${outFlower}</td>
-            <td>${outOther}</td>
-            <td>${outOtherDesc}</td>
-            <td><strong>${totalSurvey}</strong></td>
-            <td><strong>${totalFound}</strong></td>
-            <td><strong class="${ciClass}">${ci.toFixed(2)}%</strong></td>
-          </tr>`;
-        });
-
-        html += `</table>`;
-        document.getElementById('table_div').innerHTML = html;
-      }
-
-      // เพิ่มฟังก์ชันสำหรับ responsive table
-      function handleTableResponsive() {
-        const table = document.querySelector('table');
-        if (table && window.innerWidth < 768) {
-          table.style.fontSize = '0.7em';
-        } else if (table) {
-          table.style.fontSize = '0.9em';
+        <div class="summary-section">
+          <div class="summary-title">📊 สรุปรวม</div>
+          <div class="summary-row">
+            <div class="summary-item">
+              <label>รวมสำรวจทั้งหมด</label>
+              <input type="number" 
+                     class="summary-input" 
+                     name="sum_survey_${houseNum}"
+                     readonly>
+            </div>
+            <div class="summary-item">
+              <label>รวมพบลูกน้ำ</label>
+              <input type="number" 
+                     class="summary-input" 
+                     name="sum_found_${houseNum}"
+                     readonly>
+            </div>
+            <div class="summary-item">
+              <label>CI (%)</label>
+              <div class="ci-circle-container">
+                <svg class="ci-circle" width="60" height="60">
+                  <circle cx="30" cy="30" r="26" stroke="#eee" stroke-width="6" fill="none"/>
+                  <circle cx="30" cy="30" r="26" stroke="#00b894" stroke-width="6" fill="none"
+                    stroke-dasharray="163.36" stroke-dashoffset="163.36"
+                    data-ci-arc
+                  />
+                </svg>
+                <div class="ci-text" data-ci-text>0%</div>
+              </div>
+              <div class="ci-label" data-ci-label style="margin-top:6px;font-size:0.95em; font-weight:bold; text-shadow: 0 1px 2px #fff, 0 0 2px #fff;"></div>
+              <input type="hidden" name="ci_${houseNum}">
+            </div>
+          </div>
+        </div>
+      `;
+      
+      return section;
+    }
+    
+    function addHouse() {
+      rowCounter++;
+      const houseSection = createHouseSection(rowCounter);
+      formContent.appendChild(houseSection);
+      
+      // เลื่อนไปยังบ้านที่เพิ่มใหม่
+      houseSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      
+      // โฟกัสที่ช่องบ้านเลขที่
+      setTimeout(() => {
+        houseSection.querySelector('.house-input').focus();
+      }, 500);
+    }
+    
+    function deleteHouse(houseNum) {
+      if (confirm('ต้องการลบข้อมูลบ้านนี้หรือไม่?')) {
+        const section = document.querySelector(`[data-house-num="${houseNum}"]`);
+        if (section) {
+          section.remove();
         }
       }
+    }
+    
+    function calculateSummary(houseNum) {
+      // รวมเฉพาะ input ที่เกี่ยวข้องกับ "สำรวจ" สำหรับ "รวมสำรวจทั้งหมด"
+      let totalSurvey = 0;
+      // รวมเฉพาะ input ที่เกี่ยวข้องกับ "พบลูกน้ำ" สำหรับ "รวมพบลูกน้ำ"
+      let totalFound = 0;
 
-      // Event listeners
-      window.addEventListener('resize', handleTableResponsive);
-      window.addEventListener('load', handleTableResponsive);
+      const section = document.querySelector(`[data-house-num="${houseNum}"]`);
+      if (section) {
+        // เฉพาะ input ที่เป็นช่องกรอก (ไม่รวม summary)
+        const surveyInputs = section.querySelectorAll(
+          `input.number-input.survey-input[name^="in_"][name$="_survey_${houseNum}"],input.number-input.survey-input[name^="out_"][name$="_survey_${houseNum}"]`
+        );
+        const foundInputs = section.querySelectorAll(
+          `input.number-input.found-input[name^="in_"][name$="_found_${houseNum}"],input.number-input.found-input[name^="out_"][name$="_found_${houseNum}"]`
+        );
 
-      // Auto refresh every 5 minutes
-      setInterval(() => {
-        console.log('Auto refreshing data...');
-        fetchData();
-      }, 300000);
+        surveyInputs.forEach(input => {
+          totalSurvey += parseInt(input.value) || 0;
+        });
 
-      // คำแนะนำการแก้ไขปัญหา CORS
-      window.addEventListener('error', function(e) {
-        if (e.message && e.message.includes('Script error')) {
-          console.warn('Possible CORS issue detected. Please ensure:');
-          console.warn('1. Google Sheet is shared publicly (Anyone with link can view)');
-          console.warn('2. Open this file via web server (not file://)');
-          console.warn('3. Use Chrome/Edge without strict privacy settings');
+        foundInputs.forEach(input => {
+          totalFound += parseInt(input.value) || 0;
+        });
+
+        // อัพเดทค่าสรุป
+        const summaryTotalSurvey = section.querySelector(`input[name="sum_survey_${houseNum}"]`);
+        const summaryTotalFound = section.querySelector(`input[name="sum_found_${houseNum}"]`);
+        const summaryCI = section.querySelector(`input[name="ci_${houseNum}"]`);
+        const ciArc = section.querySelector('[data-ci-arc]');
+        const ciText = section.querySelector('[data-ci-text]');
+        const ciLabelDiv = section.querySelector('[data-ci-label]');
+
+        if (summaryTotalSurvey) summaryTotalSurvey.value = totalSurvey;
+        if (summaryTotalFound) summaryTotalFound.value = totalFound;
+
+        // คำนวณค่า CI
+        let ciValue = 0;
+        if (totalSurvey > 0) {
+          ciValue = (totalFound / totalSurvey) * 100;
         }
-      });
+        if (summaryCI) summaryCI.value = ciValue.toFixed(2);
 
-      // เพิ่ม keyboard shortcuts
-      document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey || e.metaKey) {
-          switch(e.key) {
-            case 'r':
-              e.preventDefault();
-              fetchData();
-              break;
-            case 'f':
-              e.preventDefault();
-              document.getElementById('dateSelect').focus();
-              break;
-          }
+        // สรุปข้อความและสี
+        let ciLabel = '';
+        let ciColor = '#00b894'; // เขียว
+        if (ciValue === 0) {
+          ciLabel = 'ปลอดภัย';
+          ciColor = '#00b894'; // เขียว
+        } else if (ciValue > 0 && ciValue <= 10) {
+          ciLabel = 'ยอมรับได้ เสี่ยงต่ำ';
+          ciColor = '#ffd600'; // เหลือง
+        } else if (ciValue > 10) {
+          ciLabel = 'เสี่ยงสูงต่อการระบาดของโรคไข้เลือดออก';
+          ciColor = '#ff3b30'; // แดง
         }
-      });
 
-      // เพิ่ม tooltips สำหรับ CI values
-      function addTooltips() {
-        const ciElements = document.querySelectorAll('.ci-high, .ci-medium, .ci-low');
-        ciElements.forEach(el => {
-          const value = parseFloat(el.textContent);
-          let tooltip = '';
-          if (value > 10) {
-            tooltip = 'ระดับเสี่ยงสูง - ต้องการการควบคุมเร่งด่วน';
-          } else if (value > 5) {
-            tooltip = 'ระดับเสี่ยงปานกลาง - ต้องการการติดตาม';
+        // วาดกราฟวงกลม
+        if (ciArc) {
+          const circleLen = 2 * Math.PI * 26; // r=26
+          const percent = Math.max(0, Math.min(100, ciValue));
+          ciArc.setAttribute('stroke-dasharray', circleLen);
+          ciArc.setAttribute('stroke-dashoffset', circleLen - (circleLen * percent / 100));
+          ciArc.setAttribute('stroke', ciColor);
+        }
+
+        // แสดงค่าในวงกลม
+        if (ciText) {
+          let percentText = totalSurvey > 0 ? ciValue.toFixed(1) + '%' : '0%';
+          ciText.textContent = percentText;
+          ciText.style.color = ciColor;
+        }
+
+        // แสดงข้อความสรุปด้านล่างวงกลม
+        if (ciLabelDiv) {
+          ciLabelDiv.textContent = ciLabel;
+          ciLabelDiv.style.color = ciColor;
+          ciLabelDiv.style.background = "#fff";
+          ciLabelDiv.style.borderRadius = "6px";
+          ciLabelDiv.style.padding = "2px 4px";
+          ciLabelDiv.style.display = "inline-block";
+          ciLabelDiv.style.boxShadow = "0 1px 4px rgba(0,0,0,0.08)";
+        }
+      }
+    }
+    
+    function resetForm() {
+      if (confirm('ต้องการล้างข้อมูลทั้งหมดหรือไม่?')) {
+        formContent.innerHTML = '';
+        rowCounter = 0;
+        hideMessages();
+        addHouse(); // เพิ่มบ้านแรก
+      }
+    }
+    
+    function hideMessages() {
+      successMessage.style.display = 'none';
+      errorMessage.style.display = 'none';
+      loading.style.display = 'none';
+    }
+    
+    // Utility to highlight required fields if empty
+    function highlightRequiredFields() {
+      // หมู่ที่
+      const village = document.getElementById('village');
+      const labelVillage = document.getElementById('label-village');
+      if (!village.value) {
+        village.classList.add('required-highlight');
+        labelVillage.classList.add('required-label');
+      } else {
+        village.classList.remove('required-highlight');
+        labelVillage.classList.remove('required-label');
+      }
+
+      // ผู้สำรวจ
+      const surveyor = document.getElementById('surveyor');
+      const labelSurveyor = document.getElementById('label-surveyor');
+      if (!surveyor.value) {
+        surveyor.classList.add('required-highlight');
+        labelSurveyor.classList.add('required-label');
+      } else {
+        surveyor.classList.remove('required-highlight');
+        labelSurveyor.classList.remove('required-label');
+      }
+
+      // บ้านเลขที่ (ทุกบ้าน)
+      document.querySelectorAll('.house-section').forEach(section => {
+        const input = section.querySelector('.house-input');
+        const label = section.querySelector('label[for="' + input.id + '"]');
+        if (input && label) {
+          if (!input.value.trim()) {
+            input.classList.add('required-highlight');
+            label.classList.add('required-label');
           } else {
-            tooltip = 'ระดับเสี่ยงต่ำ - สถานการณ์ปกติ';
+            input.classList.remove('required-highlight');
+            label.classList.remove('required-label');
           }
-          el.setAttribute('title', tooltip);
+        }
+      });
+    }
+
+    // Event Listeners
+    addRowBtn.addEventListener('click', () => {
+      addHouse();
+      setTimeout(highlightRequiredFields, 100);
+    });
+    resetBtn.addEventListener('click', resetForm);
+
+    document.getElementById('village').addEventListener('change', function() {
+      const village = this.value;
+      const surveyorSelect = document.getElementById('surveyor');
+      surveyorSelect.innerHTML = '<option value="">เลือกผู้สำรวจ</option>';
+      if (surveyorsByVillage[village]) {
+        surveyorsByVillage[village].forEach(person => {
+          const opt = document.createElement('option');
+          opt.value = person.value;
+          opt.textContent = person.label;
+          surveyorSelect.appendChild(opt);
         });
       }
+      highlightRequiredFields();
+    });
+    document.getElementById('surveyor').addEventListener('change', highlightRequiredFields);
 
-      // Call addTooltips after rendering
-      const originalRenderDashboard = renderDashboard;
-      renderDashboard = function() {
-        originalRenderDashboard();
-        setTimeout(addTooltips, 100);
-      };
-    </script>
-  </body>
-  </html>
+    // Delegate input event for house number fields
+    document.addEventListener('input', function(e) {
+      if (e.target.classList.contains('house-input')) {
+        highlightRequiredFields();
+      }
+    });
+
+    document.getElementById('surveyForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      hideMessages();
+      loading.style.display = 'block';
+      
+      // ตรวจสอบข้อมูลผู้สำรวจ
+      const village = document.getElementById('village').value;
+      const surveyor = document.getElementById('surveyor').value.trim();
+      
+      if (!village) {
+        loading.style.display = 'none';
+        errorMessage.textContent = '❌ กรุณาเลือกหมู่ที่';
+        errorMessage.style.display = 'block';
+        document.getElementById('village').focus();
+        return;
+      }
+      
+      if (!surveyor) {
+        loading.style.display = 'none';
+        errorMessage.textContent = '❌ กรุณากรอกชื่อผู้สำรวจ';
+        errorMessage.style.display = 'block';
+        document.getElementById('surveyor').focus();
+        return;
+      }
+      
+      // ตรวจสอบว่ามีข้อมูลบ้านอย่างน้อย 1 บ้าน
+      const houseInputs = document.querySelectorAll('input[name^="houseNo_"]');
+      let hasValidHouse = false;
+      
+      for (let input of houseInputs) {
+        if (input.value.trim()) {
+          hasValidHouse = true;
+          break;
+        }
+      }
+      
+      if (!hasValidHouse) {
+        loading.style.display = 'none';
+        errorMessage.textContent = '❌ กรุณากรอกบ้านเลขที่อย่างน้อย 1 บ้าน';
+        errorMessage.style.display = 'block';
+        return;
+      }
+      
+      const formData = new FormData(this);
+      
+      fetch(scriptURL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        loading.style.display = 'none';
+        successMessage.style.display = 'block';
+        
+        // เลื่อนไปด้านบนเพื่อดูข้อความ
+        successMessage.scrollIntoView({ behavior: 'smooth' });
+        
+        // รีเซ็ตฟอร์มหลังจาก 2 วินาที
+        setTimeout(() => {
+          this.reset();
+          formContent.innerHTML = '';
+          rowCounter = 0;
+          addHouse();
+          hideMessages();
+        }, 2000);
+      })
+      .catch(error => {
+        loading.style.display = 'none';
+        errorMessage.style.display = 'block';
+        errorMessage.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+    
+    // เพิ่มบ้านแรกเมื่อโหลดหน้า
+    addHouse();
+    setTimeout(highlightRequiredFields, 100);
+
+    // ตั้งค่าวันที่เป็นวันปัจจุบัน
+    const today = new Date();
+    const dateString = today.getFullYear() + '-' + 
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                      String(today.getDate()).padStart(2, '0');
+    document.getElementById('surveyDate').value = dateString;
+    
+    // Mockup รายชื่อผู้สำรวจแต่ละหมู่
+    const surveyorsByVillage = {
+      "1": [
+        { value: "นาง สายลม เกียรติยศ", label: "นาง สายลม เกียรติยศ" },
+        { value: "นาง ลมัย ท้วมยัง", label: "นาง ลมัย ท้วมยัง" },
+        { value: "นาง ด๊อด สุริมา", label: "นาง ด๊อด สุริมา" },
+        { value: "นาง สิรินทราภรณ์ มี สุข", label: "นาง สิรินทราภรณ์ มี สุข" },
+        { value: "นาย มิ่งขวัญ เนียมศรี", label: "นาย มิ่งขวัญ เนียมศรี" },
+        { value: "นาง มะยม จีนย้าย", label: "นาง มะยม จีนย้าย" },
+        { value: "นาง สายยัน ปานรุ่ง", label: "นาง สายยัน ปานรุ่ง" },
+        { value: "นาง น้ำค้าง กรฤทธิ์", label: "นาง น้ำค้าง กรฤทธิ์" },
+        { value: "นาง มาลัย สุขเรือง", label: "นาง มาลัย สุขเรือง" },
+        { value: "นาง วันดี จีนย้าย", label: "นาง วันดี จีนย้าย" },
+        { value: "นาง สมใจ เหล็กทั่ง", label: "นาง สมใจ เหล็กทั่ง" },
+        { value: "นางสาว เสาวนีย์ นวนเปี้ย", label: "นางสาว เสาวนีย์ นวนเปี้ย" },
+        { value: "นาง สุธาสินี บุตรบุญ", label: "นาง สุธาสินี บุตรบุญ" },
+        { value: "นางสาว ลักษมี จีนย้าย", label: "นางสาว ลักษมี จีนย้าย" },
+        { value: "นาง สุธาสินี นาคเทศ", label: "นาง สุธาสินี นาคเทศ" },
+        { value: "นาย ทองศุกร์ จันทร์ดำ", label: "นาย ทองศุกร์ จันทร์ดำ" }
+      ],
+      "2": [
+        { value: "นาย อุทิศ อินอิว", label: "นาย อุทิศ อินอิว" },
+        { value: "นาง น้ำตาล จันทร์ดำ", label: "นาง น้ำตาล จันทร์ดำ" },
+        { value: "นาย ตวย ทองคำ", label: "นาย ตวย ทองคำ" },
+        { value: "นางสาว ปรัชญา จีนย้าย", label: "นางสาว ปรัชญา จีนย้าย" },
+        { value: "นาง ทับทิม เกตุประดิษฐ", label: "นาง ทับทิม เกตุประดิษฐ" },
+        { value: "นาง แฉล้ม เหล็กสิงห์", label: "นาง แฉล้ม เหล็กสิงห์" },
+        { value: "นาย ด่วน แสนสุภา", label: "นาย ด่วน แสนสุภา" },
+        { value: "นางสาว ภัทรวดี พูลพิชัย", label: "นางสาว ภัทรวดี พูลพิชัย" },
+        { value: "นาง กุล จีนย้าย", label: "นาง กุล จีนย้าย" },
+        { value: "นาง เกียร์ จีนย้าย", label: "นาง เกียร์ จีนย้าย" },
+        { value: "นาง ละมัย เหล็กสิงห์", label: "นาง ละมัย เหล็กสิงห์" },
+        { value: "นาย ลำดวน เหล็กสิงห์", label: "นาย ลำดวน เหล็กสิงห์" },
+        { value: "นาง น้ำนอง บัวพาเรือง", label: "นาง น้ำนอง บัวพาเรือง" },
+        { value: "นาย สุขอนันต์ ย้ายหน่าย", label: "นาย สุขอนันต์ ย้ายหน่าย" },
+        { value: "นาง นนต์ แป้นเพ็ชร", label: "นาง นนต์ แป้นเพ็ชร" },
+        { value: "นาง กัญญา แสนสุภา", label: "นาง กัญญา แสนสุภา" },
+        { value: "นาง น้ำผึ้ง เหล็กสิงห์", label: "นาง น้ำผึ้ง เหล็กสิงห์" },
+        { value: "นาง ไพ พุ่มเทียน", label: "นาง ไพ พุ่มเทียน" },
+        { value: "นาง ออด แป้นเพ็ชร", label: "นาง ออด แป้นเพ็ชร" },
+        { value: "นาง ติ้ม บุญมีโพธิ์", label: "นาง ติ้ม บุญมีโพธิ์" },
+        { value: "นาง แอน สิงห์คาร", label: "นาง แอน สิงห์คาร" },
+        { value: "นาง พิม จันทร์ดำ", label: "นาง พิม จันทร์ดำ" },
+        { value: "นาง ส้มปอย บุตรดา", label: "นาง ส้มปอย บุตรดา" },
+        { value: "นาง สำเภา เงินพล", label: "นาง สำเภา เงินพล" },
+        { value: "นางสาว นิพา เนียมสี", label: "นางสาว นิพา เนียมสี" },
+        { value: "นาง เสวย แป้นเพ็ชร", label: "นาง เสวย แป้นเพ็ชร" },
+        { value: "นาง คล้าย พัดจันทร์หอม", label: "นาง คล้าย พัดจันทร์หอม" },
+        { value: "นาง คำนึง เหล็กสิงห์", label: "นาง คำนึง เหล็กสิงห์" },
+        { value: "นาง ยอดขวัญ ถิ่นพยัคฆ์", label: "นาง ยอดขวัญ ถิ่นพยัคฆ์" },
+        { value: "นาง ศศิวิมล ทองคำ", label: "นาง ศศิวิมล ทองคำ" },
+        { value: "นาง กาหลง จันทร์ดำ", label: "นาง กาหลง จันทร์ดำ" }
+      ],
+      "3": [
+        { value: "นาง กาเหว่า เหล็กสิงห์", label: "นาง กาเหว่า เหล็กสิงห์" },
+        { value: "นาง สายญู บุตรเจริญ", label: "นาง สายญู บุตรเจริญ" },
+        { value: "นาย สิงห์ วันอ่อง", label: "นาย สิงห์ วันอ่อง" },
+        { value: "นาง ดาวเรือง อิ่มเพ็ง", label: "นาง ดาวเรือง อิ่มเพ็ง" },
+        { value: "นาง ไพวัล ชัยชนะ", label: "นาง ไพวัล ชัยชนะ" },
+        { value: "นาง อัญณิมา อิ่มเพ็ง", label: "นาง อัญณิมา อิ่มเพ็ง" },
+        { value: "นาง สุริกิจ เหล็กสิงห์", label: "นาง สุริกิจ เหล็กสิงห์" },
+        { value: "นาย สมคิด เหล็กทั่ง", label: "นาย สมคิด เหล็กทั่ง" },
+        { value: "นาย พ้ง เพ็งคง", label: "นาย พ้ง เพ็งคง" },
+        { value: "นาง เด่นนภา เขียวดี", label: "นาง เด่นนภา เขียวดี" },
+        { value: "นาง ดวงนภา เขียวดี", label: "นาง ดวงนภา เขียวดี" },
+        { value: "นาง สุพัตรา ผดุงเวียง", label: "นาง สุพัตรา ผดุงเวียง" },
+        { value: "นาง สมบุญ บุญคง", label: "นาง สมบุญ บุญคง" },
+        { value: "นาง ดาราวรรณ ท้วมยัง", label: "นาง ดาราวรรณ ท้วมยัง" },
+        { value: "นาง ดวงตา จีนย้าย", label: "นาง ดวงตา จีนย้าย" },
+        { value: "นาง สุภาวดี มีจอ", label: "นาง สุภาวดี มีจอ" },
+        { value: "นาง วรรณสิริ ไกรกิจราษฎร์", label: "นาง วรรณสิริ ไกรกิจราษฎร์" },
+        { value: "นาง จันพร เหล็กสิงห์", label: "นาง จันพร เหล็กสิงห์" },
+        { value: "นางสาว ฝากจิตร จีนย้าย", label: "นางสาว ฝากจิตร จีนย้าย" },
+        { value: "นาง จันทร์ทิพย์ นันคำ", label: "นาง จันทร์ทิพย์ นันคำ" },
+        { value: "นาง บุญธรรม เพ็งคง", label: "นาง บุญธรรม เพ็งคง" },
+        { value: "นางสาว อุไรรัตน์ พัดจันทร์หอม", label: "นางสาว อุไรรัตน์ พัดจันทร์หอม" },
+        { value: "นาง ไฝ เขียวดี", label: "นาง ไฝ เขียวดี" },
+        { value: "นาง เครือ เม่นอยู่", label: "นาง เครือ เม่นอยู่" },
+        { value: "นางสาว วันเพ็ญ ปานรุ่ง", label: "นางสาว วันเพ็ญ ปานรุ่ง" }
+      ],
+      "4": [
+        { value: "นาย น้อย ภู่ระหงษ์", label: "นาย น้อย ภู่ระหงษ์" },
+        { value: "นาย โกมล อินอิว", label: "นาย โกมล อินอิว" },
+        { value: "นาย เชิด เพ็ชรดี", label: "นาย เชิด เพ็ชรดี" },
+        { value: "นาย บุญเลิศ มากมี", label: "นาย บุญเลิศ มากมี" },
+        { value: "นาย ยอง พุ่มเทียน", label: "นาย ยอง พุ่มเทียน" },
+        { value: "นาย ถ้วน เกิดแป้น", label: "นาย ถ้วน เกิดแป้น" },
+        { value: "นาย คำล่า สุขเจริญ", label: "นาย คำล่า สุขเจริญ" },
+        { value: "นาย สมนึก เอี่ยมบุรี", label: "นาย สมนึก เอี่ยมบุรี" },
+        { value: "นาย วิโรจน์ มากมี", label: "นาย วิโรจน์ มากมี" },
+        { value: "นาย รุ่ง แสนสุภา", label: "นาย รุ่ง แสนสุภา" },
+        { value: "นาย วิสูตร์ พุ่มเทียน", label: "นาย วิสูตร์ พุ่มเทียน" },
+        { value: "นางสาว ภัทรวดี กรแก้ว", label: "นางสาว ภัทรวดี กรแก้ว" },
+        { value: "นางสาว จอมขวัญ มาเต", label: "นางสาว จอมขวัญ มาเต" },
+        { value: "นาย จีรวัฒน์ มากมี", label: "นาย จีรวัฒน์ มากมี" },
+        { value: "นางสาว ทัศนีย์ อินอิว", label: "นางสาว ทัศนีย์ อินอิว" },
+        { value: "นางสาว ทิพยาภรณ์ บุตรดา", label: "นางสาว ทิพยาภรณ์ บุตรดา" }
+      ],
+      "5": [
+        { value: "นาง เฉลย ดำงาม", label: "นาง เฉลย ดำงาม" },
+        { value: "นาง ดอกเทียน จีนย้าย", label: "นาง ดอกเทียน จีนย้าย" },
+        { value: "นาง กรรณิกา จงบริบูรณ์", label: "นาง กรรณิกา จงบริบูรณ์" },
+        { value: "นาง สบง ทองคำ", label: "นาง สบง ทองคำ" },
+        { value: "นาง ปิ่น จันทร์ดำ", label: "นาง ปิ่น จันทร์ดำ" },
+        { value: "นาง ฐิติยา บุตรบุญ", label: "นาง ฐิติยา บุตรบุญ" },
+        { value: "นาง อ้อยใจ มาโพธิ์", label: "นาง อ้อยใจ มาโพธิ์" },
+        { value: "นาย บรรลุ เอี่ยมสวัสดิ์", label: "นาย บรรลุ เอี่ยมสวัสดิ์" },
+        { value: "นาง สินาภรณ์ เหล็กสิงห์", label: "นาง สินาภรณ์ เหล็กสิงห์" },
+        { value: "นางสาว ขวัญเรียม ท้วมยัง", label: "นางสาว ขวัญเรียม ท้วมยัง" },
+        { value: "นางสาว ประหยัด อิ่มเพ็ง", label: "นางสาว ประหยัด อิ่มเพ็ง" },
+        { value: "นาย ฉลอมชัย เขียวดี", label: "นาย ฉลอมชัย เขียวดี" },
+        { value: "นาง ชบา อิ่มเพ็ง", label: "นาง ชบา อิ่มเพ็ง" },
+        { value: "นาย ณัฐพงษ์ เงินพล", label: "นาย ณัฐพงษ์ เงินพล" },
+        { value: "นางสาว มยุรา สามงามมี", label: "นางสาว มยุรา สามงามมี" },
+        { value: "นาง สมจิตร บุญมา", label: "นาง สมจิตร บุญมา" },
+        { value: "นาง วีระ ศรีทอง", label: "นาง วีระ ศรีทอง" },
+        { value: "นาง สร้อยม่าน ศรีภิรมณ์", label: "นาง สร้อยม่าน ศรีภิรมณ์" },
+        { value: "นาง จินตนา อิ่มเพ็ง", label: "นาง จินตนา อิ่มเพ็ง" },
+        { value: "นาง เสน่ห์ ดำสนิท", label: "นาง เสน่ห์ ดำสนิท" },
+        { value: "นาง วาสนา อินรุ่ง", label: "นาง วาสนา อินรุ่ง" },
+        { value: "นาง สายลวด คัญทับ", label: "นาง สายลวด คัญทับ" },
+        { value: "นาง ศิริรัตน์ อิ่มเพ็ง", label: "นาง ศิริรัตน์ อิ่มเพ็ง" },
+        { value: "นาง ละมุด จันทร์ดำ", label: "นาง ละมุด จันทร์ดำ" },
+        { value: "นาง มะลิวัลย์ แป้นเพ็ชร", label: "นาง มะลิวัลย์ แป้นเพ็ชร" },
+        { value: "นาง นริศรา สิงห์คาร", label: "นาง นริศรา สิงห์คาร" },
+        { value: "นาง สายทอง อิ่มเพ็ง", label: "นาง สายทอง อิ่มเพ็ง" },
+        { value: "นางสาว อมรรัตน์ เอี่ยมสวัสดิ์", label: "นางสาว อมรรัตน์ เอี่ยมสวัสดิ์" },
+        { value: "นาง จิราวรรณ กาดกอเสริม", label: "นาง จิราวรรณ กาดกอเสริม" },
+        { value: "นาง ฉัตร อินอิว", label: "นาง ฉัตร อินอิว" },
+        { value: "นาง นฤมล จันทร์ดำ", label: "นาง นฤมล จันทร์ดำ" }
+      ],
+      "6": [
+        { value: "นาง จั่น เหล็กสิงห์", label: "นาง จั่น เหล็กสิงห์" },
+        { value: "นาง ชะลอ แป้นต่วน", label: "นาง ชะลอ แป้นต่วน" },
+        { value: "นาง ดำเนิน เอี่ยมสวัสดิ์", label: "นาง ดำเนิน เอี่ยมสวัสดิ์" },
+        { value: "นาง อันชัน อิ่มเพ็ง", label: "นาง อันชัน อิ่มเพ็ง" },
+        { value: "นาย ประโยชน์ เนียมสี", label: "นาย ประโยชน์ เนียมสี" },
+        { value: "นาย สังเวียน จันทร์ดำ", label: "นาย สังเวียน จันทร์ดำ" },
+        { value: "นาง รัญญา แดงมี", label: "นาง รัญญา แดงมี" },
+        { value: "นาง บรรหยัด เหล็กทั่ง", label: "นาง บรรหยัด เหล็กทั่ง" },
+        { value: "นาง ก้านแก้ว จีนย้าย", label: "นาง ก้านแก้ว จีนย้าย" },
+        { value: "นาง วาริพิน กูบโคกกรวด", label: "นาง วาริพิน กูบโคกกรวด" },
+        { value: "นาง สมทรง จีนย้าย", label: "นาง สมทรง จีนย้าย" },
+        { value: "นาง จินตนา เหล็กสิงห์", label: "นาง จินตนา เหล็กสิงห์" },
+        { value: "นาง นอม ภู่ผิว", label: "นาง นอม ภู่ผิว" },
+        { value: "นางสาว กนกวรรณ อินอิว", label: "นางสาว กนกวรรณ อินอิว" },
+        { value: "นาง วณิชชา จีนย้าย", label: "นาง วณิชชา จีนย้าย" },
+        { value: "นาง พรลดา อินอิว", label: "นาง พรลดา อินอิว" },
+        { value: "นาง ดอกสร้อย สดนามอญ", label: "นาง ดอกสร้อย สดนามอญ" },
+        { value: "นาง ลูกน้ำ เหล็กสิงห์", label: "นาง ลูกน้ำ เหล็กสิงห์" },
+        { value: "นาง กำไร เหล็กสิงห์", label: "นาง กำไร เหล็กสิงห์" },
+        { value: "นาง จิรัฐติกาล ทองคำ", label: "นาง จิรัฐติกาล ทองคำ" },
+        { value: "นางสาว หนึ่งฤทัย นาคเทศ", label: "นางสาว หนึ่งฤทัย นาคเทศ" }
+      ],
+      "7": [
+        { value: "นาง สุลี เหล็กสิงห์", label: "นาง สุลี เหล็กสิงห์" },
+        { value: "นาย กล้า ปานรุ่ง", label: "นาย กล้า ปานรุ่ง" },
+        { value: "นาง เด่น แก้วหลำ", label: "นาง เด่น แก้วหลำ" },
+        { value: "นาง ขยัน ทองคำ", label: "นาง ขยัน ทองคำ" },
+        { value: "นาง ดอกพุฒ ปกรณ์ธาดา", label: "นาง ดอกพุฒ ปกรณ์ธาดา" },
+        { value: "นาง กัลยา ปกรณ์ธาดา", label: "นาง กัลยา ปกรณ์ธาดา" },
+        { value: "นาง ทิม อ่อนละมัย", label: "นาง ทิม อ่อนละมัย" },
+        { value: "นาง สุภัค ด้วงแจ่ม", label: "นาง สุภัค ด้วงแจ่ม" },
+        { value: "นางสาว ชม้อย พรมมั่น", label: "นางสาว ชม้อย พรมมั่น" },
+        { value: "นาง ศรีนวล เหล็กสิงห์", label: "นาง ศรีนวล เหล็กสิงห์" },
+        { value: "นาง ประดล บุญเหม", label: "นาง ประดล บุญเหม" },
+        { value: "นาง ม่านฟ้า เทียนทอง", label: "นาง ม่านฟ้า เทียนทอง" },
+        { value: "นาง วิไล ท้วมยัง", label: "นาง วิไล ท้วมยัง" },
+        { value: "นางสาว กฤษณา อิ่มเพ็ง", label: "นางสาว กฤษณา อิ่มเพ็ง" },
+        { value: "นาง บุษยา ทองพับ", label: "นาง บุษยา ทองพับ" },
+        { value: "นาง ยุพิน ทองคำ", label: "นาง ยุพิน ทองคำ" },
+        { value: "นาง จุฑามาศ ทองคำ", label: "นาง จุฑามาศ ทองคำ" },
+        { value: "นาง บัวแก้ว พัดจันทร์หอม", label: "นาง บัวแก้ว พัดจันทร์หอม" },
+        { value: "นาง จินดาดล เหล็กสิงห์", label: "นาง จินดาดล เหล็กสิงห์" },
+        { value: "นางสาว ณัฐชา ขุนหมื่น", label: "นางสาว ณัฐชา ขุนหมื่น" },
+        { value: "นาย ดอกรัก จันทร์หลำผล", label: "นาย ดอกรัก จันทร์หลำผล" },
+        { value: "นาง ฉวี เหล็กสิงห์", label: "นาง ฉวี เหล็กสิงห์" },
+        { value: "นางสาว หงหยก จีนย้าย", label: "นางสาว หงหยก จีนย้าย" }
+      ]
+    };
+
+    // เมื่อเลือกหมู่ที่ ให้แสดงชื่อผู้สำรวจเฉพาะหมู่นั้น
+    document.getElementById('village').addEventListener('change', function() {
+      const village = this.value;
+      const surveyorSelect = document.getElementById('surveyor');
+      surveyorSelect.innerHTML = '<option value="">เลือกผู้สำรวจ</option>';
+      if (surveyorsByVillage[village]) {
+        surveyorsByVillage[village].forEach(person => {
+          const opt = document.createElement('option');
+          opt.value = person.value;
+          opt.textContent = person.label;
+          surveyorSelect.appendChild(opt);
+        });
+      }
+    });
+
+    // ทำให้ฟอร์มเป็น global function
+    window.deleteHouse = deleteHouse;
+    window.calculateSummary = calculateSummary;
+  </script>
+</body>
+</html>
