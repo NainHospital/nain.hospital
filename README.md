@@ -1,8 +1,10 @@
-<html>
+<!DOCTYPE html>
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>บันทึกการสำรวจลูกน้ำยุงลาย</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -458,6 +460,9 @@
       color: #ff3b30 !important;
       font-weight: bold;
     }
+    .required-asterisk {
+      color: #ff3b30;
+    }
     
     @media (max-width: 768px) {
       body {
@@ -505,7 +510,7 @@
       <div class="surveyor-info">
         <div class="info-grid">
           <div class="info-group">
-            <label for="village" id="label-village">หมู่ที่ <span style="color:#ff3b30">*</span></label>
+            <label for="village" id="label-village">หมู่ที่ <span class="required-asterisk">*</span></label>
             <select id="village" name="village" required>
               <option value="">เลือกหมู่</option>
               <option value="1">หมู่ 1</option>
@@ -524,7 +529,7 @@
           </div>
           
           <div class="info-group">
-            <label for="surveyor" id="label-surveyor">ผู้สำรวจ <span style="color:#ff3b30">*</span></label>
+            <label for="surveyor" id="label-surveyor">ผู้สำรวจ <span class="required-asterisk">*</span></label>
             <select id="surveyor" name="surveyor" required>
               <option value="">เลือกผู้สำรวจ</option>
               <!-- รายชื่อจะถูกเติมโดย JS -->
@@ -596,13 +601,16 @@
         <div class="house-header">
           <div class="house-number">${houseNum}</div>
           <div class="house-input-container">
-            <label for="houseNo_${houseNum}" id="label-houseNo_${houseNum}">บ้านเลขที่ <span style="color:#ff3b30">*</span></label>
+            <label for="houseNo_${houseNum}" id="label-houseNo_${houseNum}">บ้านเลขที่ <span class="required-asterisk">*</span></label>
             <input type="text" 
                    class="house-input" 
                    id="houseNo_${houseNum}"
                    name="houseNo_${houseNum}" 
                    placeholder="เช่น 123/45"
-                   required>
+                   required
+                   inputmode="numeric"
+                   pattern="[0-9\/]+"
+                   oninput="this.value=this.value.replace(/[^0-9\/]/g,'')">
           </div>
           ${houseNum > 1 ? `<button type="button" class="delete-btn" onclick="deleteHouse(${houseNum})" title="ลบบ้านนี้">×</button>` : ''}
         </div>
@@ -616,9 +624,10 @@
                   <div class="input-group" style="margin-bottom:8px;">
                     <label>รายละเอียดอื่นๆ</label>
                     <input type="text" 
-                           class="number-input"
+                           class="number-input in-other-detail"
                            name="in_other_detail_${houseNum}"
-                           placeholder="ระบุรายละเอียด">
+                           placeholder="ระบุรายละเอียด"
+                           data-other-detail="in_${houseNum}">
                   </div>
                   <div class="location-title">
                     <span class="location-icon">${cat.icon}</span>
@@ -626,24 +635,33 @@
                   </div>
                   <div class="input-row">
                     <div class="input-group">
-                      <label>สำรวจ (จำนวน)</label>
+                      <label for="in_${cat.key}_survey_${houseNum}">สำรวจ (จำนวน)</label>
                       <input type="number" 
-                             class="number-input survey-input" 
+                             class="number-input survey-input in-other-amount"
                              name="in_${cat.key}_survey_${houseNum}"
+                             id="in_${cat.key}_survey_${houseNum}"
                              min="0" 
                              value="0"
+                             data-other-amount="in_${houseNum}"
+                             placeholder="0"
+                             title="กรอกจำนวนสำรวจในอาคาร - อื่นๆ"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                     <div class="input-group">
-                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <label for="in_${cat.key}_found_${houseNum}">พบลูกน้ำ (จำนวน)</label>
                       <input type="number" 
-                             class="number-input found-input" 
+                             class="number-input found-input in-other-amount"
                              name="in_${cat.key}_found_${houseNum}"
+                             id="in_${cat.key}_found_${houseNum}"
                              min="0" 
                              value="0"
+                             data-other-amount="in_${houseNum}"
+                             placeholder="0"
+                             title="กรอกจำนวนพบลูกน้ำในอาคาร - อื่นๆ"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                   </div>
+                  <div class="in-other-warning" style="color:#ff3b30; font-size:13px; display:none; margin-top:4px;"></div>
                 </div>
               ` : `
                 <div class="location-group">
@@ -653,21 +671,27 @@
                   </div>
                   <div class="input-row">
                     <div class="input-group">
-                      <label>สำรวจ (จำนวน)</label>
+                      <label for="in_${cat.key}_survey_${houseNum}">สำรวจ (จำนวน)</label>
                       <input type="number" 
                              class="number-input survey-input" 
                              name="in_${cat.key}_survey_${houseNum}"
+                             id="in_${cat.key}_survey_${houseNum}"
                              min="0" 
                              value="0"
+                             placeholder="0"
+                             title="กรอกจำนวนสำรวจในอาคาร - ${cat.name}"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                     <div class="input-group">
-                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <label for="in_${cat.key}_found_${houseNum}">พบลูกน้ำ (จำนวน)</label>
                       <input type="number" 
                              class="number-input found-input" 
                              name="in_${cat.key}_found_${houseNum}"
+                             id="in_${cat.key}_found_${houseNum}"
                              min="0" 
                              value="0"
+                             placeholder="0"
+                             title="กรอกจำนวนพบลูกน้ำในอาคาร - ${cat.name}"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                   </div>
@@ -684,9 +708,10 @@
                   <div class="input-group" style="margin-bottom:8px;">
                     <label>รายละเอียดอื่นๆ</label>
                     <input type="text" 
-                           class="number-input"
+                           class="number-input out-other-detail"
                            name="out_other_detail_${houseNum}"
-                           placeholder="ระบุรายละเอียด">
+                           placeholder="ระบุรายละเอียด"
+                           data-other-detail="out_${houseNum}">
                   </div>
                   <div class="location-title">
                     <span class="location-icon">${cat.icon}</span>
@@ -694,24 +719,33 @@
                   </div>
                   <div class="input-row">
                     <div class="input-group">
-                      <label>สำรวจ (จำนวน)</label>
+                      <label for="out_${cat.key}_survey_${houseNum}">สำรวจ (จำนวน)</label>
                       <input type="number" 
-                             class="number-input survey-input" 
+                             class="number-input survey-input out-other-amount"
                              name="out_${cat.key}_survey_${houseNum}"
+                             id="out_${cat.key}_survey_${houseNum}"
                              min="0" 
                              value="0"
+                             data-other-amount="out_${houseNum}"
+                             placeholder="0"
+                             title="กรอกจำนวนสำรวจนอกอาคาร - อื่นๆ"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                     <div class="input-group">
-                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <label for="out_${cat.key}_found_${houseNum}">พบลูกน้ำ (จำนวน)</label>
                       <input type="number" 
-                             class="number-input found-input" 
+                             class="number-input found-input out-other-amount"
                              name="out_${cat.key}_found_${houseNum}"
+                             id="out_${cat.key}_found_${houseNum}"
                              min="0" 
                              value="0"
+                             data-other-amount="out_${houseNum}"
+                             placeholder="0"
+                             title="กรอกจำนวนพบลูกน้ำนอกอาคาร - อื่นๆ"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                   </div>
+                  <div class="out-other-warning" style="color:#ff3b30; font-size:13px; display:none; margin-top:4px;"></div>
                 </div>
               ` : `
                 <div class="location-group">
@@ -721,21 +755,27 @@
                   </div>
                   <div class="input-row">
                     <div class="input-group">
-                      <label>สำรวจ (จำนวน)</label>
+                      <label for="out_${cat.key}_survey_${houseNum}">สำรวจ (จำนวน)</label>
                       <input type="number" 
                              class="number-input survey-input" 
                              name="out_${cat.key}_survey_${houseNum}"
+                             id="out_${cat.key}_survey_${houseNum}"
                              min="0" 
                              value="0"
+                             placeholder="0"
+                             title="กรอกจำนวนสำรวจนอกอาคาร - ${cat.name}"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                     <div class="input-group">
-                      <label>พบลูกน้ำ (จำนวน)</label>
+                      <label for="out_${cat.key}_found_${houseNum}">พบลูกน้ำ (จำนวน)</label>
                       <input type="number" 
                              class="number-input found-input" 
                              name="out_${cat.key}_found_${houseNum}"
+                             id="out_${cat.key}_found_${houseNum}"
                              min="0" 
                              value="0"
+                             placeholder="0"
+                             title="กรอกจำนวนพบลูกน้ำนอกอาคาร - ${cat.name}"
                              onchange="calculateSummary(${houseNum})">
                     </div>
                   </div>
@@ -749,18 +789,24 @@
           <div class="summary-title">📊 สรุปรวม</div>
           <div class="summary-row">
             <div class="summary-item">
-              <label>รวมสำรวจทั้งหมด</label>
+              <label for="sum_survey_${houseNum}">รวมสำรวจทั้งหมด</label>
               <input type="number" 
                      class="summary-input" 
                      name="sum_survey_${houseNum}"
-                     readonly>
+                     id="sum_survey_${houseNum}"
+                     readonly
+                     placeholder="0"
+                     title="รวมจำนวนสำรวจทั้งหมด">
             </div>
             <div class="summary-item">
-              <label>รวมพบลูกน้ำ</label>
+              <label for="sum_found_${houseNum}">รวมพบลูกน้ำ</label>
               <input type="number" 
                      class="summary-input" 
                      name="sum_found_${houseNum}"
-                     readonly>
+                     id="sum_found_${houseNum}"
+                     readonly
+                     placeholder="0"
+                     title="รวมจำนวนพบลูกน้ำทั้งหมด">
             </div>
             <div class="summary-item">
               <label>CI (%)</label>
@@ -788,15 +834,69 @@
       rowCounter++;
       const houseSection = createHouseSection(rowCounter);
       formContent.appendChild(houseSection);
-      
-      // เลื่อนไปยังบ้านที่เพิ่มใหม่
-      houseSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      
-      // โฟกัสที่ช่องบ้านเลขที่
+
+      // ตั้งค่า event เฉพาะ number input (survey/found)
       setTimeout(() => {
+        // เลื่อนไปยังบ้านที่เพิ่มใหม่
+        houseSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // โฟกัสที่ช่องบ้านเลขที่
         houseSection.querySelector('.house-input').focus();
-      }, 500);
+
+        // จัดการ default/restore 0 สำหรับ number input
+        houseSection.querySelectorAll('input.number-input[type="number"]').forEach(input => {
+          // ถ้าไม่มีค่า ให้ใส่ 0
+          if (!input.value || input.value === '') input.value = '0';
+
+          // Focus: ถ้าเป็น 0 ให้ลบออก
+          input.addEventListener('focus', function() {
+            if (this.value === '0') this.value = '';
+          });
+          // Input: ถ้าลบจนว่าง ให้ใส่ 0
+          input.addEventListener('input', function() {
+            // ถ้าเป็นค่าว่าง ให้ใส่ 0 (แต่ต้อง delay เพื่อไม่รบกวนการพิมพ์)
+            if (this.value === '') {
+              setTimeout(() => {
+                if (this.value === '') this.value = '0';
+              }, 100);
+            }
+            // ถ้าพิมพ์เลข 0 ตัวเดียว ให้เหลือ 0 เดียว ไม่ต้องซ้อน 00
+            if (/^0\d+/.test(this.value)) {
+              this.value = this.value.replace(/^0+/, '');
+              if (this.value === '') this.value = '0';
+            }
+          });
+          // Blur: ถ้าค่าว่าง ให้ใส่ 0
+          input.addEventListener('blur', function() {
+            if (this.value === '') this.value = '0';
+          });
+        });
+      }, 100);
     }
+    // สำหรับบ้านที่ถูกสร้างไว้แล้ว (บ้านแรก)
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        document.querySelectorAll('input.number-input[type="number"]').forEach(input => {
+          if (!input.value || input.value === '') input.value = '0';
+          input.addEventListener('focus', function() {
+            if (this.value === '0') this.value = '';
+          });
+          input.addEventListener('input', function() {
+            if (this.value === '') {
+              setTimeout(() => {
+                if (this.value === '') this.value = '0';
+              }, 100);
+            }
+            if (/^0\d+/.test(this.value)) {
+              this.value = this.value.replace(/^0+/, '');
+              if (this.value === '') this.value = '0';
+            }
+          });
+          input.addEventListener('blur', function() {
+            if (this.value === '') this.value = '0';
+          });
+        });
+      }, 300);
+    });
     
     function deleteHouse(houseNum) {
       if (confirm('ต้องการลบข้อมูลบ้านนี้หรือไม่?')) {
@@ -979,61 +1079,71 @@
 
     document.getElementById('surveyForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      
       hideMessages();
-      loading.style.display = 'block';
-      
+
       // ตรวจสอบข้อมูลผู้สำรวจ
       const village = document.getElementById('village').value;
       const surveyor = document.getElementById('surveyor').value.trim();
-      
+
       if (!village) {
-        loading.style.display = 'none';
-        errorMessage.textContent = '❌ กรุณาเลือกหมู่ที่';
-        errorMessage.style.display = 'block';
+        Swal.fire({
+          icon: 'error',
+          title: 'กรุณาเลือกหมู่ที่',
+          confirmButtonText: 'ตกลง',
+        });
         document.getElementById('village').focus();
         return;
       }
-      
+
       if (!surveyor) {
-        loading.style.display = 'none';
-        errorMessage.textContent = '❌ กรุณากรอกชื่อผู้สำรวจ';
-        errorMessage.style.display = 'block';
+        Swal.fire({
+          icon: 'error',
+          title: 'กรุณากรอกชื่อผู้สำรวจ',
+          confirmButtonText: 'ตกลง',
+        });
         document.getElementById('surveyor').focus();
         return;
       }
-      
+
       // ตรวจสอบว่ามีข้อมูลบ้านอย่างน้อย 1 บ้าน
       const houseInputs = document.querySelectorAll('input[name^="houseNo_"]');
       let hasValidHouse = false;
-      
       for (let input of houseInputs) {
         if (input.value.trim()) {
           hasValidHouse = true;
           break;
         }
       }
-      
       if (!hasValidHouse) {
-        loading.style.display = 'none';
-        errorMessage.textContent = '❌ กรุณากรอกบ้านเลขที่อย่างน้อย 1 บ้าน';
-        errorMessage.style.display = 'block';
+        Swal.fire({
+          icon: 'error',
+          title: 'กรุณากรอกบ้านเลขที่อย่างน้อย 1 บ้าน',
+          confirmButtonText: 'ตกลง',
+        });
         return;
       }
-      
+
+      // แสดง SweetAlert2 loading
+      Swal.fire({
+        title: 'กำลังส่งข้อมูล...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       const formData = new FormData(this);
-      
       fetch(scriptURL, {
         method: 'POST',
         body: formData
       })
       .then(response => {
-        loading.style.display = 'none';
-        successMessage.style.display = 'block';
-        
-        // เลื่อนไปด้านบนเพื่อดูข้อความ
-        successMessage.scrollIntoView({ behavior: 'smooth' });
-        
+        Swal.fire({
+          icon: 'success',
+          title: 'ส่งข้อมูลเรียบร้อยแล้ว',
+          text: 'ขอบคุณครับ!',
+          confirmButtonText: 'ตกลง',
+        });
         // รีเซ็ตฟอร์มหลังจาก 2 วินาที
         setTimeout(() => {
           this.reset();
@@ -1044,9 +1154,12 @@
         }, 2000);
       })
       .catch(error => {
-        loading.style.display = 'none';
-        errorMessage.style.display = 'block';
-        errorMessage.scrollIntoView({ behavior: 'smooth' });
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'กรุณาลองใหม่อีกครั้ง',
+          confirmButtonText: 'ตกลง',
+        });
       });
     });
     
@@ -1260,6 +1373,77 @@
     // ทำให้ฟอร์มเป็น global function
     window.deleteHouse = deleteHouse;
     window.calculateSummary = calculateSummary;
+
+    // เพิ่ม event delegation สำหรับบังคับกรอก "รายละเอียดอื่นๆ" ก่อนใส่จำนวน
+    document.addEventListener('input', function(e) {
+      // ในอาคาร - อื่นๆ
+      if (e.target.classList.contains('in-other-amount')) {
+        const groupKey = e.target.getAttribute('data-other-amount');
+        const detailInput = e.target.closest('.location-group').querySelector('.in-other-detail');
+        const warning = e.target.closest('.location-group').querySelector('.in-other-warning');
+        if (detailInput && !detailInput.value.trim()) {
+          e.target.value = '';
+          if (warning) {
+            warning.textContent = 'กรุณากรอกรายละเอียดอื่นๆ ก่อนใส่จำนวน';
+            warning.style.display = 'block';
+          }
+        } else if (warning) {
+          warning.textContent = '';
+          warning.style.display = 'none';
+        }
+      }
+
+      // นอกอาคาร - อื่นๆ
+      if (e.target.classList.contains('out-other-amount')) {
+        const groupKey = e.target.getAttribute('data-other-amount');
+        const detailInput = e.target.closest('.location-group').querySelector('.out-other-detail');
+        const warning = e.target.closest('.location-group').querySelector('.out-other-warning');
+        if (detailInput && !detailInput.value.trim()) {
+          e.target.value = '';
+          if (warning) {
+            warning.textContent = 'กรุณากรอกรายละเอียดอื่นๆ ก่อนใส่จำนวน';
+            warning.style.display = 'block';
+          }
+        } else if (warning) {
+          warning.textContent = '';
+          warning.style.display = 'none';
+        }
+      }
+    });
+    // --- Number input UX: show 0 as default, clear on focus, restore 0 if empty ---
+    function handleNumberInputFocus(e) {
+      if (e.target.classList.contains('number-input')) {
+        // Only clear if value is exactly 0
+        if (e.target.value === '0') {
+          e.target.value = '';
+        }
+      }
+    }
+
+    function handleNumberInputBlur(e) {
+      if (e.target.classList.contains('number-input')) {
+        // If left empty, restore 0
+        if (e.target.value === '' || e.target.value === null) {
+          e.target.value = '0';
+        }
+      }
+    }
+
+    function handleNumberInputInput(e) {
+      if (e.target.classList.contains('number-input')) {
+        // Prevent multiple leading zeros
+        if (/^0\d+/.test(e.target.value)) {
+          e.target.value = e.target.value.replace(/^0+/, '');
+        }
+        // If user deletes all, keep empty (blur will restore 0)
+      }
+    }
+
+    // Attach event listeners (delegated)
+    document.addEventListener('focusin', handleNumberInputFocus);
+    document.addEventListener('blur', handleNumberInputBlur, true);
+    document.addEventListener('input', handleNumberInputInput);
+    // --- End Number input UX ---
   </script>
 </body>
 </html>
