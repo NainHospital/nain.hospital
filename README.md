@@ -807,7 +807,7 @@
                      placeholder="0"
                      title="รวมจำนวนพบลูกน้ำทั้งหมด">
             </div>
-            <div class="summary-item">
+            <div class="summary-item" style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; grid-column: span 2;">
               <label>CI (%)</label>
               <div class="ci-circle-container">
                 <svg class="ci-circle" width="60" height="60">
@@ -1143,13 +1143,22 @@
           text: 'ขอบคุณครับ!',
           confirmButtonText: 'ตกลง',
         });
-        // รีเซ็ตฟอร์มหลังจาก 2 วินาที
+        // รีเซ็ตเฉพาะข้อมูลบ้าน หลังจาก 2 วินาที
         setTimeout(() => {
-          this.reset();
+          // ลบเฉพาะบ้านที่เพิ่มเข้ามา เหลือบ้านแรกไว้และล้างค่าในบ้านแรก
           formContent.innerHTML = '';
           rowCounter = 0;
           addHouse();
           hideMessages();
+          // รีเซ็ตเฉพาะช่องบ้านเลขที่ในบ้านแรก
+          const firstHouseInput = document.querySelector('.house-input');
+          if (firstHouseInput) firstHouseInput.value = '';
+          // รีเซ็ตช่องจำนวนในบ้านแรก
+          document.querySelectorAll('.number-input').forEach(input => { input.value = '0'; });
+          // รีเซ็ตสรุป
+          document.querySelectorAll('.summary-input').forEach(input => { input.value = '0'; });
+          document.querySelectorAll('[data-ci-text]').forEach(el => { el.textContent = '0%'; });
+          document.querySelectorAll('[data-ci-label]').forEach(el => { el.textContent = ''; });
         }, 2000);
       })
       .catch(error => {
