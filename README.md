@@ -19,7 +19,7 @@
     }
     
     .container {
-      max-width: 100%;
+      max-width: 1200px;
       margin: 0 auto;
       background: #fff;
       border-radius: 15px;
@@ -463,6 +463,7 @@
       color: #ff3b30;
     }
     
+    
     @media (max-width: 768px) {
       body {
         padding: 5px;
@@ -607,8 +608,8 @@
                    name="houseNo_${houseNum}" 
                    placeholder="เช่น 123/45"
                    required
-                   inputmode="numeric"
-                   pattern="[0-9\/]+"
+                   pattern="[0-9/]+"
+                   inputmode="text"
                    oninput="this.value=this.value.replace(/[^0-9\/]/g,'')">
           </div>
           ${houseNum > 1 ? `<button type="button" class="delete-btn" onclick="deleteHouse(${houseNum})" title="ลบบ้านนี้">×</button>` : ''}
@@ -1155,6 +1156,8 @@
           if (firstHouseInput) firstHouseInput.value = '';
           // รีเซ็ตช่องจำนวนในบ้านแรก
           document.querySelectorAll('.number-input').forEach(input => { input.value = '0'; });
+          // รีเซ็ตช่องรายละเอียดอื่นๆ
+          document.querySelectorAll('.in-other-detail, .out-other-detail').forEach(input => { input.value = ''; });
           // รีเซ็ตสรุป
           document.querySelectorAll('.summary-input').forEach(input => { input.value = '0'; });
           document.querySelectorAll('[data-ci-text]').forEach(el => { el.textContent = '0%'; });
@@ -1395,6 +1398,8 @@
             warning.textContent = 'กรุณากรอกรายละเอียดอื่นๆ ก่อนใส่จำนวน';
             warning.style.display = 'block';
           }
+          // ป้องกันการกรอกซ้ำหลังรีเซ็ต
+          e.target.blur();
         } else if (warning) {
           warning.textContent = '';
           warning.style.display = 'none';
@@ -1412,6 +1417,8 @@
             warning.textContent = 'กรุณากรอกรายละเอียดอื่นๆ ก่อนใส่จำนวน';
             warning.style.display = 'block';
           }
+          // ป้องกันการกรอกซ้ำหลังรีเซ็ต
+          e.target.blur();
         } else if (warning) {
           warning.textContent = '';
           warning.style.display = 'none';
@@ -1430,7 +1437,19 @@
 
     function handleNumberInputBlur(e) {
       if (e.target.classList.contains('number-input')) {
-        // If left empty, restore 0
+        // ถ้าเป็นช่องจำนวนในอื่นๆ (in-other-amount, out-other-amount)
+        if (
+          e.target.classList.contains('in-other-amount') ||
+          e.target.classList.contains('out-other-amount')
+        ) {
+          // ถ้ายังไม่ได้กรอกรายละเอียดอื่นๆ ให้ช่องนี้ว่างไว้
+          const detailInput = e.target.closest('.location-group')?.querySelector('.in-other-detail, .out-other-detail');
+          if (detailInput && !detailInput.value.trim()) {
+            e.target.value = '';
+            return;
+          }
+        }
+        // ถ้าเป็นช่องจำนวนทั่วไป
         if (e.target.value === '' || e.target.value === null) {
           e.target.value = '0';
         }
@@ -1451,6 +1470,53 @@
     document.addEventListener('focusin', handleNumberInputFocus);
     document.addEventListener('blur', handleNumberInputBlur, true);
     document.addEventListener('input', handleNumberInputInput);
+
+    // Prevent restoring 0 in รายละเอียดอื่นๆ (other-detail) input on blur
+    document.addEventListener('blur', function(e) {
+      if (
+        e.target.classList.contains('in-other-detail') ||
+        e.target.classList.contains('out-other-detail')
+      ) {
+        // ถ้าไม่ได้กรอกอะไร ให้ช่องว่างไว้
+        if (!e.target.value.trim()) {
+          e.target.value = '';
+        }
+      }
+    }, true);
+
+    // Prevent 0 from being set in รายละเอียดอื่นๆ (other-detail) input by number input UX
+    const origHandleNumberInputBlur = handleNumberInputBlur;
+    function handleNumberInputBlur(e) {
+      // Prevent 0 in รายละเอียดอื่นๆ
+      if (
+        e.target.classList.contains('in-other-detail') ||
+        e.target.classList.contains('out-other-detail')
+      ) {
+        if (!e.target.value.trim()) {
+          e.target.value = '';
+        }
+        return;
+      }
+      // Otherwise, run original logic
+      if (e.target.classList.contains('number-input')) {
+        // ถ้าเป็นช่องจำนวนในอื่นๆ (in-other-amount, out-other-amount)
+        if (
+          e.target.classList.contains('in-other-amount') ||
+          e.target.classList.contains('out-other-amount')
+        ) {
+          // ถ้ายังไม่ได้กรอกรายละเอียดอื่นๆ ให้ช่องนี้ว่างไว้
+          const detailInput = e.target.closest('.location-group')?.querySelector('.in-other-detail, .out-other-detail');
+          if (detailInput && !detailInput.value.trim()) {
+            e.target.value = '';
+            return;
+          }
+        }
+        // ถ้าเป็นช่องจำนวนทั่วไป
+        if (e.target.value === '' || e.target.value === null) {
+          e.target.value = '0';
+        }
+      }
+    }
     // --- End Number input UX ---
   </script>
 </body>
