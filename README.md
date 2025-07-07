@@ -607,7 +607,7 @@
                    name="houseNo_${houseNum}" 
                    placeholder="เช่น 123/45"
                    required
-                   inputmode="numeric"
+                   inputmode="text"
                    pattern="[0-9/]+"
                    inputmode="text">
           </div>
