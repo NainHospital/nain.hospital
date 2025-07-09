@@ -601,15 +601,27 @@
           <div class="house-number">${houseNum}</div>
           <div class="house-input-container">
             <label for="houseNo_${houseNum}" id="label-houseNo_${houseNum}">บ้านเลขที่ <span class="required-asterisk">*</span></label>
-            <input type="text" 
-                   class="house-input" 
-                   id="houseNo_${houseNum}"
-                   name="houseNo_${houseNum}" 
-                   placeholder="เช่น 123/45"
-                   required
-                   inputmode="text"
-                   pattern="[0-9/]+"
-                   inputmode="text">
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <input type="number"
+                     class="house-input house-no-main"
+                     id="houseNo_main_${houseNum}"
+                     name="houseNo_main_${houseNum}"
+                     placeholder="เลขที่"
+                     min="0"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     style="width: 60px; text-align: right;">
+              <label style="font-size: 1.2em; padding: 0 2px;">/</label>
+              <input type="number"
+                     class="house-input house-no-sub"
+                     id="houseNo_sub_${houseNum}"
+                     name="houseNo_sub_${houseNum}"
+                     placeholder="เลขย่อย"
+                     min="0"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     style="width: 50px; text-align: left;">
+            </div>
           </div>
           ${houseNum > 1 ? `<button type="button" class="delete-btn" onclick="deleteHouse(${houseNum})" title="ลบบ้านนี้">×</button>` : ''}
         </div>
@@ -1104,11 +1116,14 @@
         return;
       }
 
-      // ตรวจสอบว่ามีข้อมูลบ้านอย่างน้อย 1 บ้าน
-      const houseInputs = document.querySelectorAll('input[name^="houseNo_"]');
+      // ตรวจสอบว่ามีข้อมูลบ้านอย่างน้อย 1 บ้าน (แบบใหม่: ต้องมีเลขหลัก หรือ เลขย่อย)
+      const houseMainInputs = document.querySelectorAll('input[name^="houseNo_main_"]');
+      const houseSubInputs = document.querySelectorAll('input[name^="houseNo_sub_"]');
       let hasValidHouse = false;
-      for (let input of houseInputs) {
-        if (input.value.trim()) {
+      for (let i = 0; i < houseMainInputs.length; i++) {
+        const mainVal = houseMainInputs[i].value.trim();
+        const subVal = houseSubInputs[i] ? houseSubInputs[i].value.trim() : '';
+        if (mainVal || subVal) {
           hasValidHouse = true;
           break;
         }
@@ -1131,7 +1146,33 @@
         }
       });
 
+      // --- Combine houseNo_main_X and houseNo_sub_X into houseNo_X ---
       const formData = new FormData(this);
+      // หาเลขบ้านทั้งหมด
+      for (let i = 1; i <= rowCounter; i++) {
+        const main = formData.get(`houseNo_main_${i}`) ? formData.get(`houseNo_main_${i}`).trim() : '';
+        const sub = formData.get(`houseNo_sub_${i}`) ? formData.get(`houseNo_sub_${i}`).trim() : '';
+        // ถ้ามีเลขหลักหรือย่อย
+        if (main || sub) {
+          let combined = main;
+          if (main && sub) {
+            combined = `${main}/${sub}`;
+          } else if (!main && sub) {
+            combined = `/${sub}`;
+          }
+          // ลบของเดิม
+          formData.delete(`houseNo_main_${i}`);
+          formData.delete(`houseNo_sub_${i}`);
+          // เพิ่มใหม่
+          formData.append(`houseNo_${i}`, combined);
+        } else {
+          // ลบของเดิมถ้าไม่มีค่า
+          formData.delete(`houseNo_main_${i}`);
+          formData.delete(`houseNo_sub_${i}`);
+        }
+      }
+      // --- End combine ---
+
       fetch(scriptURL, {
         method: 'POST',
         body: formData
