@@ -573,7 +573,7 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxs-_ehAAZudE6eaQYRz2a91nPC5bZ1lG1y8iWZU16e3xSZ-2Nmsv8TCUpr8G5IKAIHiA/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwj4xbLhvLffOlNeJ50mRd4z7ymLW-19sQwkh2_fvRYIq6qoIm3ZgHThkVu1qhouA34_A/exec';
     const formContent = document.getElementById('formContent');
     const addRowBtn = document.getElementById('addRowBtn');
     const resetBtn = document.getElementById('resetBtn');
