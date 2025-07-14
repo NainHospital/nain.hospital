@@ -573,7 +573,7 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbw_7jnj0dI58l0A1cz0f4Z8MZAqE7RdAIjmx0rAINATfkpfkBXJH1g38ElgltS-AAG43A/exec';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxp63wPMRUwp5o88mOPJIHYGurvKuJj-cqwRK1CyEV2DqyIps8wZK7MKV_uPswyktsd4A/exec';
     const formContent = document.getElementById('formContent');
     const addRowBtn = document.getElementById('addRowBtn');
     const resetBtn = document.getElementById('resetBtn');
@@ -1095,6 +1095,7 @@
       // ตรวจสอบข้อมูลผู้สำรวจ
       const village = document.getElementById('village').value;
       const surveyor = document.getElementById('surveyor').value.trim();
+      const surveyDate = document.getElementById('surveyDate').value;
 
       if (!village) {
         Swal.fire({
@@ -1137,79 +1138,100 @@
         return;
       }
 
-      // แสดง SweetAlert2 loading
-      Swal.fire({
-        title: 'กำลังส่งข้อมูล...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
+      // --- เช็คซ้ำก่อนส่ง ---
+      // ใช้ doGet API ที่ Apps Script (ต้องรองรับ CORS และ JSON)
+      const getSheetURL = scriptURL + '?action=get'; // เพิ่ม query เพื่อแยก doGet ออกจาก doPost
 
-      // --- Combine houseNo_main_X and houseNo_sub_X into houseNo_X ---
-      const formData = new FormData(this);
-      // หาเลขบ้านทั้งหมด
-      for (let i = 1; i <= rowCounter; i++) {
-        const main = formData.get(`houseNo_main_${i}`) ? formData.get(`houseNo_main_${i}`).trim() : '';
-        const sub = formData.get(`houseNo_sub_${i}`) ? formData.get(`houseNo_sub_${i}`).trim() : '';
-        // ถ้ามีเลขหลักหรือย่อย
-        if (main || sub) {
-          let combined = main;
-          if (main && sub) {
-            combined = `${main}/${sub}`;
-          } else if (!main && sub) {
-            combined = `/${sub}`;
+      fetch(getSheetURL)
+        .then(res => res.json())
+        .then(rows => {
+          // rows: [{village, surveyDate}, ...]
+          // เทียบแบบ string ทั้งสองฝั่ง (แปลงเป็น string เพื่อป้องกัน type mismatch)
+          const isDuplicate = rows.some(row =>
+            String(row.village) === String(village) && String(row.surveyDate) === String(surveyDate)
+          );
+          if (isDuplicate) {
+            Swal.fire({
+              icon: 'error',
+              title: 'มีการบันทึกข้อมูลหมู่นี้ในวันนี้แล้ว',
+              text: 'ไม่สามารถส่งข้อมูลซ้ำได้',
+              confirmButtonText: 'ตกลง',
+            });
+            return;
           }
-          // ลบของเดิม
-          formData.delete(`houseNo_main_${i}`);
-          formData.delete(`houseNo_sub_${i}`);
-          // เพิ่มใหม่
-          formData.append(`houseNo_${i}`, combined);
-        } else {
-          // ลบของเดิมถ้าไม่มีค่า
-          formData.delete(`houseNo_main_${i}`);
-          formData.delete(`houseNo_sub_${i}`);
-        }
-      }
-      // --- End combine ---
 
-      fetch(scriptURL, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
-        Swal.fire({
-          icon: 'success',
-          title: 'ส่งข้อมูลเรียบร้อยแล้ว',
-          text: 'ขอบคุณครับ!',
-          confirmButtonText: 'ตกลง',
+          // --- Combine houseNo_main_X and houseNo_sub_X into houseNo_X ---
+          const formData = new FormData(document.getElementById('surveyForm'));
+          for (let i = 1; i <= rowCounter; i++) {
+            const main = formData.get(`houseNo_main_${i}`) ? formData.get(`houseNo_main_${i}`).trim() : '';
+            const sub = formData.get(`houseNo_sub_${i}`) ? formData.get(`houseNo_sub_${i}`).trim() : '';
+            if (main || sub) {
+              let combined = main;
+              if (main && sub) {
+                combined = `${main}/${sub}`;
+              } else if (!main && sub) {
+                combined = `/${sub}`;
+              }
+              formData.delete(`houseNo_main_${i}`);
+              formData.delete(`houseNo_sub_${i}`);
+              formData.append(`houseNo_${i}`, combined);
+            } else {
+              formData.delete(`houseNo_main_${i}`);
+              formData.delete(`houseNo_sub_${i}`);
+            }
+          }
+          // --- End combine ---
+
+          // ส่งข้อมูล
+          Swal.fire({
+            title: 'กำลังส่งข้อมูล...',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
+          fetch(scriptURL, {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+            Swal.fire({
+              icon: 'success',
+              title: 'ส่งข้อมูลเรียบร้อยแล้ว',
+              text: 'ขอบคุณครับ!',
+              confirmButtonText: 'ตกลง',
+            });
+            setTimeout(() => {
+              formContent.innerHTML = '';
+              rowCounter = 0;
+              addHouse();
+              hideMessages();
+              const firstHouseInput = document.querySelector('.house-input');
+              if (firstHouseInput) firstHouseInput.value = '';
+              document.querySelectorAll('.number-input').forEach(input => { input.value = '0'; });
+              document.querySelectorAll('.summary-input').forEach(input => { input.value = '0'; });
+              document.querySelectorAll('[data-ci-text]').forEach(el => { el.textContent = '0%'; });
+              document.querySelectorAll('[data-ci-label]').forEach(el => { el.textContent = ''; });
+            }, 2000);
+          })
+          .catch(error => {
+            Swal.fire({
+              icon: 'error',
+              title: 'เกิดข้อผิดพลาด',
+              text: 'กรุณาลองใหม่อีกครั้ง',
+              confirmButtonText: 'ตกลง',
+            });
+          });
+        })
+        .catch(() => {
+          Swal.fire({
+            icon: 'error',
+            title: 'ไม่สามารถตรวจสอบข้อมูลซ้ำได้',
+            text: 'กรุณาลองใหม่อีกครั้ง',
+            confirmButtonText: 'ตกลง',
+          });
         });
-        // รีเซ็ตเฉพาะข้อมูลบ้าน หลังจาก 2 วินาที
-        setTimeout(() => {
-          // ลบเฉพาะบ้านที่เพิ่มเข้ามา เหลือบ้านแรกไว้และล้างค่าในบ้านแรก
-          formContent.innerHTML = '';
-          rowCounter = 0;
-          addHouse();
-          hideMessages();
-          // รีเซ็ตเฉพาะช่องบ้านเลขที่ในบ้านแรก
-          const firstHouseInput = document.querySelector('.house-input');
-          if (firstHouseInput) firstHouseInput.value = '';
-          // รีเซ็ตช่องจำนวนในบ้านแรก
-          document.querySelectorAll('.number-input').forEach(input => { input.value = '0'; });
-          // รีเซ็ตสรุป
-          document.querySelectorAll('.summary-input').forEach(input => { input.value = '0'; });
-          document.querySelectorAll('[data-ci-text]').forEach(el => { el.textContent = '0%'; });
-          document.querySelectorAll('[data-ci-label]').forEach(el => { el.textContent = ''; });
-        }, 2000);
-      })
-      .catch(error => {
-        Swal.fire({
-          icon: 'error',
-          title: 'เกิดข้อผิดพลาด',
-          text: 'กรุณาลองใหม่อีกครั้ง',
-          confirmButtonText: 'ตกลง',
-        });
-      });
     });
     
     // เพิ่มบ้านแรกเมื่อโหลดหน้า
