@@ -4,6 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>บันทึกการสำรวจลูกน้ำยุงลาย</title>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -573,7 +574,12 @@
   </div>
 
   <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwj4xbLhvLffOlNeJ50mRd4z7ymLW-19sQwkh2_fvRYIq6qoIm3ZgHThkVu1qhouA34_A/exec';
+    // --- Google Sheet config (เหมือน dashboard) ---
+    const SHEET_ID = '15r7y6xwbVB4_cc6IMTqmsV93JHXQqHIIdQbn9kMAF3A';
+    const SHEET_NAME = 'Sheet1ID178';
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${SHEET_NAME}`;
+
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbxs-_ehAAZudE6eaQYRz2a91nPC5bZ1lG1y8iWZU16e3xSZ-2Nmsv8TCUpr8G5IKAIHiA/exec';
     const formContent = document.getElementById('formContent');
     const addRowBtn = document.getElementById('addRowBtn');
     const resetBtn = document.getElementById('resetBtn');
@@ -582,7 +588,82 @@
     const errorMessage = document.getElementById('errorMessage');
     
     let rowCounter = 0;
-    
+    // เพิ่มตัวแปรเก็บข้อมูลบ้านที่สำรวจแล้ว
+    let existingHouses = [];
+    let houseNoCol = null, villageCol = null, dateCol = null;
+
+    // โหลด Google Charts (ใช้สำหรับโหลดข้อมูล gviz)
+    google.charts.load('current', { packages: ['corechart', 'table'], language: 'th' });
+
+    // ฟังก์ชัน normalize houseNo (รองรับเลข/ตัวอักษร/ช่องว่าง/สัญลักษณ์ทุกแบบ, ตัดช่องว่าง, /, -, _, .)
+function normalizeHouseNo(str) {
+  // ลบช่องว่าง, /, -, _, . และเติมศูนย์หน้าถ้าเป็นเลขล้วน
+  let s = String(str || '')
+    .replace(/[\s\/\-_.]+/g, '')
+    .toLowerCase();
+  // ถ้าเป็นเลขล้วน ให้เติมศูนย์หน้าจนเป็น 3 หลัก (เช่น 5 -> 005)
+  if (/^\d+$/.test(s)) {
+    s = s.padStart(3, '0');
+  }
+  return s;
+}
+
+// ฟังก์ชันโหลดข้อมูลบ้านที่สำรวจแล้ว (แก้ไข: ไม่ใช้ setOnLoadCallback ซ้ำ)
+function loadExistingHouses(selectedVillage, selectedDate, callback) {
+  const query = new google.visualization.Query(sheetUrl);
+  query.send(function(response) {
+    if (response.isError()) {
+      existingHouses = [];
+      if (callback) callback();
+      return;
+    }
+    try {
+      const dataTable = response.getDataTable();
+      const cols = [];
+      for (let i = 0; i < dataTable.getNumberOfColumns(); i++) {
+        cols.push(dataTable.getColumnLabel(i));
+      }
+      houseNoCol = findColumn(cols, ['บ้านเลขที่', 'houseNos', 'เลขที่', 'house_no']);
+      villageCol = findColumn(cols, ['หมู่', 'village', 'หมู่ที่', 'village_no']);
+      dateCol = findColumn(cols, ['วันที่สำรวจ', 'วันที่', 'surveyDate']);
+      if (!houseNoCol || !villageCol || !dateCol) {
+        existingHouses = [];
+        if (callback) callback();
+        return;
+      }
+      const houses = [];
+      for (let i = 0; i < dataTable.getNumberOfRows(); i++) {
+        const rowVillage = dataTable.getValue(i, cols.indexOf(villageCol));
+        const rowDateRaw = dataTable.getValue(i, cols.indexOf(dateCol));
+        const rowHouse = dataTable.getValue(i, cols.indexOf(houseNoCol));
+        let d = new Date(rowDateRaw);
+        if (isNaN(d.getTime())) continue;
+        const yyyy = d.getFullYear();
+        const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+        const dd = d.getDate().toString().padStart(2, '0');
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        if (String(rowVillage) === String(selectedVillage) && dateStr === selectedDate && rowHouse) {
+          houses.push(normalizeHouseNo(rowHouse));
+        }
+      }
+      existingHouses = houses;
+    } catch (e) {
+      existingHouses = [];
+    }
+    if (callback) callback();
+  });
+}
+
+    function findColumn(cols, possibleNames) {
+      for (let name of possibleNames) {
+        const found = cols.find(col =>
+          col.replace(/\s/g, '').toLowerCase().includes(name.replace(/\s/g, '').toLowerCase())
+        );
+        if (found) return found;
+      }
+      return null;
+    }
+
     const categories = [
       { key: 'use', name: 'น้ำใช้', icon: '🚿' },
       { key: 'drink', name: 'น้ำดื่ม', icon: '🥤' },
@@ -1088,11 +1169,11 @@
       }
     });
 
+    // ปรับ event submit ฟอร์ม
     document.getElementById('surveyForm').addEventListener('submit', function(e) {
       e.preventDefault();
       hideMessages();
 
-      // ตรวจสอบข้อมูลผู้สำรวจ
       const village = document.getElementById('village').value;
       const surveyor = document.getElementById('surveyor').value.trim();
       const surveyDate = document.getElementById('surveyDate').value;
@@ -1106,7 +1187,6 @@
         document.getElementById('village').focus();
         return;
       }
-
       if (!surveyor) {
         Swal.fire({
           icon: 'error',
@@ -1117,7 +1197,7 @@
         return;
       }
 
-      // ตรวจสอบว่ามีข้อมูลบ้านอย่างน้อย 1 บ้าน (แบบใหม่: ต้องมีเลขหลัก หรือ เลขย่อย)
+      // ตรวจสอบว่ามีข้อมูลบ้านอย่างน้อย 1 บ้าน
       const houseMainInputs = document.querySelectorAll('input[name^="houseNo_main_"]');
       const houseSubInputs = document.querySelectorAll('input[name^="houseNo_sub_"]');
       let hasValidHouse = false;
@@ -1138,100 +1218,121 @@
         return;
       }
 
-      // --- เช็คซ้ำก่อนส่ง ---
-      // ใช้ doGet API ที่ Apps Script (ต้องรองรับ CORS และ JSON)
-      const getSheetURL = scriptURL + '?action=get'; // เพิ่ม query เพื่อแยก doGet ออกจาก doPost
+      // ป้องกัน submit ซ้ำ
+      if (window._isSubmitting) return;
+      window._isSubmitting = true;
 
-      fetch(getSheetURL)
-        .then(res => res.json())
-        .then(rows => {
-          // rows: [{village, surveyDate}, ...]
-          // เทียบแบบ string ทั้งสองฝั่ง (แปลงเป็น string เพื่อป้องกัน type mismatch)
-          const isDuplicate = rows.some(row =>
-            String(row.village) === String(village) && String(row.surveyDate) === String(surveyDate)
-          );
-          if (isDuplicate) {
-            Swal.fire({
-              icon: 'error',
-              title: 'มีการบันทึกข้อมูลหมู่นี้ในวันนี้แล้ว',
-              text: 'ไม่สามารถส่งข้อมูลซ้ำได้',
-              confirmButtonText: 'ตกลง',
-            });
-            return;
-          }
-
-          // --- Combine houseNo_main_X and houseNo_sub_X into houseNo_X ---
-          const formData = new FormData(document.getElementById('surveyForm'));
-          for (let i = 1; i <= rowCounter; i++) {
-            const main = formData.get(`houseNo_main_${i}`) ? formData.get(`houseNo_main_${i}`).trim() : '';
-            const sub = formData.get(`houseNo_sub_${i}`) ? formData.get(`houseNo_sub_${i}`).trim() : '';
-            if (main || sub) {
-              let combined = main;
-              if (main && sub) {
-                combined = `${main}/${sub}`;
-              } else if (!main && sub) {
-                combined = `/${sub}`;
-              }
-              formData.delete(`houseNo_main_${i}`);
-              formData.delete(`houseNo_sub_${i}`);
-              formData.append(`houseNo_${i}`, combined);
-            } else {
-              formData.delete(`houseNo_main_${i}`);
-              formData.delete(`houseNo_sub_${i}`);
+      // โหลดข้อมูลบ้านที่สำรวจแล้วก่อน submit
+      loadExistingHouses(village, surveyDate, function() {
+        // --- Combine houseNo_main_X and houseNo_sub_X into houseNo_X ---
+        const formData = new FormData(document.getElementById('surveyForm'));
+        let duplicateHouseNos = [];
+        let normalizedInForm = [];
+        let combinedList = [];
+        for (let i = 1; i <= rowCounter; i++) {
+          const main = formData.get(`houseNo_main_${i}`) ? formData.get(`houseNo_main_${i}`).trim() : '';
+          const sub = formData.get(`houseNo_sub_${i}`) ? formData.get(`houseNo_sub_${i}`).trim() : '';
+          if (main || sub) {
+            let combined = main;
+            if (main && sub) {
+              combined = `${main}/${sub}`;
+            } else if (!main && sub) {
+              combined = `/${sub}`;
             }
-          }
-          // --- End combine ---
-
-          // ส่งข้อมูล
-          Swal.fire({
-            title: 'กำลังส่งข้อมูล...',
-            allowOutsideClick: false,
-            didOpen: () => {
-              Swal.showLoading();
+            combinedList.push(combined);
+            // ตรวจสอบซ้ำกับ existingHouses (normalize)
+            const normCombined = normalizeHouseNo(combined);
+            normalizedInForm.push(normCombined);
+            if (existingHouses.some(h => h === normCombined)) {
+              duplicateHouseNos.push(combined);
             }
-          });
-
-          fetch(scriptURL, {
-            method: 'POST',
-            body: formData
-          })
-          .then(response => {
-            Swal.fire({
-              icon: 'success',
-              title: 'ส่งข้อมูลเรียบร้อยแล้ว',
-              text: 'ขอบคุณครับ!',
-              confirmButtonText: 'ตกลง',
-            });
-            setTimeout(() => {
-              formContent.innerHTML = '';
-              rowCounter = 0;
-              addHouse();
-              hideMessages();
-              const firstHouseInput = document.querySelector('.house-input');
-              if (firstHouseInput) firstHouseInput.value = '';
-              document.querySelectorAll('.number-input').forEach(input => { input.value = '0'; });
-              document.querySelectorAll('.summary-input').forEach(input => { input.value = '0'; });
-              document.querySelectorAll('[data-ci-text]').forEach(el => { el.textContent = '0%'; });
-              document.querySelectorAll('[data-ci-label]').forEach(el => { el.textContent = ''; });
-            }, 2000);
-          })
-          .catch(error => {
-            Swal.fire({
-              icon: 'error',
-              title: 'เกิดข้อผิดพลาด',
-              text: 'กรุณาลองใหม่อีกครั้ง',
-              confirmButtonText: 'ตกลง',
+            formData.delete(`houseNo_main_${i}`);
+            formData.delete(`houseNo_sub_${i}`);
+            formData.append(`houseNo_${i}`, combined);
+          } else {
+            formData.delete(`houseNo_main_${i}`);
+            formData.delete(`houseNo_sub_${i}`);
+          }
+        }
+        // ตรวจสอบเลขที่บ้านซ้ำในฟอร์มเดียวกัน (เช่น 5 กับ 005 หรือ 5/ กับ 005/)
+        let formDup = [];
+        normalizedInForm.forEach((val, idx, arr) => {
+          if (arr.indexOf(val) !== idx && !formDup.includes(val)) formDup.push(val);
+        });
+        if (formDup.length > 0) {
+          // หาเลขที่บ้านที่ซ้ำจริงเพื่อแสดงข้อความ
+          let dupNames = [];
+          formDup.forEach(dupNorm => {
+            let allIdx = normalizedInForm.reduce((acc, v, i) => v === dupNorm ? acc.concat(i) : acc, []);
+            allIdx.forEach(idx => {
+              if (!dupNames.includes(combinedList[idx])) dupNames.push(combinedList[idx]);
             });
           });
-        })
-        .catch(() => {
           Swal.fire({
             icon: 'error',
-            title: 'ไม่สามารถตรวจสอบข้อมูลซ้ำได้',
+            title: 'บ้านเลขที่ซ้ำในฟอร์ม',
+            html: `บ้านเลขที่ในฟอร์มมีซ้ำกัน: <b>${dupNames.join(', ')}</b> กรุณาตรวจสอบ`,
+            confirmButtonText: 'ตกลง',
+          });
+          window._isSubmitting = false;
+          return;
+        }
+        // ถ้าพบบ้านเลขที่ซ้ำกับในฐานข้อมูล
+        if (duplicateHouseNos.length > 0) {
+          Swal.fire({
+            icon: 'error',
+            title: 'บ้านเลขที่ซ้ำ',
+            html: `บ้านเลขที่ต่อไปนี้มีการบันทึกแล้วในวันนี้:<br><b>${duplicateHouseNos.join(', ')}</b><br>กรุณาตรวจสอบ`,
+            confirmButtonText: 'ตกลง',
+          });
+          window._isSubmitting = false;
+          return;
+        }
+
+        // ส่งข้อมูล
+        Swal.fire({
+          title: 'กำลังส่งข้อมูล...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        fetch(scriptURL, {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          Swal.fire({
+            icon: 'success',
+            title: 'ส่งข้อมูลเรียบร้อยแล้ว',
+            text: 'ขอบคุณครับ!',
+            confirmButtonText: 'ตกลง',
+          });
+          setTimeout(() => {
+            formContent.innerHTML = '';
+            rowCounter = 0;
+            addHouse();
+            hideMessages();
+            const firstHouseInput = document.querySelector('.house-input');
+            if (firstHouseInput) firstHouseInput.value = '';
+            document.querySelectorAll('.number-input').forEach(input => { input.value = '0'; });
+            document.querySelectorAll('.summary-input').forEach(input => { input.value = '0'; });
+            document.querySelectorAll('[data-ci-text]').forEach(el => { el.textContent = '0%'; });
+            document.querySelectorAll('[data-ci-label]').forEach(el => { el.textContent = ''; });
+            window._isSubmitting = false;
+          }, 2000);
+        })
+        .catch(error => {
+          Swal.fire({
+            icon: 'error',
+            title: 'เกิดข้อผิดพลาด',
             text: 'กรุณาลองใหม่อีกครั้ง',
             confirmButtonText: 'ตกลง',
           });
+          window._isSubmitting = false;
         });
+      });
     });
     
     // เพิ่มบ้านแรกเมื่อโหลดหน้า
@@ -1416,6 +1517,7 @@
         { value: "นางสาว กฤษณา อิ่มเพ็ง", label: "นางสาว กฤษณา อิ่มเพ็ง" },
         { value: "นาง บุษยา ทองพับ", label: "นาง บุษยา ทองพับ" },
         { value: "นาง ยุพิน ทองคำ", label: "นาง ยุพิน ทองคำ" },
+        { value: "นาง ยุพิน ทองคำ", label: "นาง ยุพิน ทองคำ" },
         { value: "นาง จุฑามาศ ทองคำ", label: "นาง จุฑามาศ ทองคำ" },
         { value: "นาง บัวแก้ว พัดจันทร์หอม", label: "นาง บัวแก้ว พัดจันทร์หอม" },
         { value: "นาง จินดาดล เหล็กสิงห์", label: "นาง จินดาดล เหล็กสิงห์" },
@@ -1427,6 +1529,7 @@
     };
 
     // เมื่อเลือกหมู่ที่ ให้แสดงชื่อผู้สำรวจเฉพาะหมู่นั้น
+   
     document.getElementById('village').addEventListener('change', function() {
       const village = this.value;
       const surveyorSelect = document.getElementById('surveyor');
@@ -1448,11 +1551,12 @@
     // เพิ่ม event delegation สำหรับบังคับกรอก "รายละเอียดอื่นๆ" ก่อนใส่จำนวน
     document.addEventListener('input', function(e) {
       // ในอาคาร - อื่นๆ
+
       if (e.target.classList.contains('in-other-amount')) {
         const groupKey = e.target.getAttribute('data-other-amount');
         const detailInput = e.target.closest('.location-group').querySelector('.in-other-detail');
         const warning = e.target.closest('.location-group').querySelector('.in-other-warning');
-        if (detailInput && !detailInput.value.trim()) {
+        if ( !detailInput.value.trim()) {
           e.target.value = '';
           if (warning) {
             warning.textContent = 'กรุณากรอกรายละเอียดอื่นๆ ก่อนใส่จำนวน';
