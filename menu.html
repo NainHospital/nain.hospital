@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เมนูหลัก</title>
+  <style>
+    body {
+      font-family: 'Sarabun', 'Noto Sans Thai', Arial, sans-serif;
+      background: linear-gradient(135deg, #e0e6ed 60%, #f8fafc 100%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    a {
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: none;
+    }
+    .menu-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(102,126,234,0.10);
+      padding: 48px 32px 36px 32px;
+      min-width: 320px;
+      max-width: 400px;
+      text-align: center;
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 32px;
+      font-size: 2em;
+    }
+    .menu-btn {
+      display: block;
+      width: 100%;
+      margin: 18px 0;
+      padding: 18px 0;
+      font-size: 1.15em;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(90deg, #667eea 60%, #764ba2 100%);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+    .menu-btn:hover {
+      background: linear-gradient(90deg, #764ba2 60%, #667eea 100%);
+      transform: translateY(-2px) scale(1.03);
+    }
+    .menu-icon {
+      font-size: 1.3em;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-container">
+    <h1>เลือกเมนู</h1>
+    <a href="/"><button class="menu-btn"><span class="menu-icon">📝</span> กรอกข้อมูลลูกน้ำ</button></a>
+    <a href="dashboard.html"><button class="menu-btn"><span class="menu-icon">📊</span> Dashboard</button></a>
+  </div>
+</body>
+</html>
