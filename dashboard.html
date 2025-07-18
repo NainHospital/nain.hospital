@@ -675,11 +675,17 @@
   <body>
     <div class="container">
       <div class="header">
-        <h1>📊 Dashboard สำรวจลูกน้ำยุงลาย</h1>
+        <h1>📊 Dashboard สำรวจลูกน้ำยุงลาย รพ.สต.นาอิน</h1>
         <p class="subtitle">ระบบติดตามและวิเคราะห์ข้อมูลการสำรวจ</p>
       </div>
 
       <div class="controls">
+        <div class="control-group">
+          <label for="mooSelect">🏘️ เลือกหมู่:</label>
+          <select id="mooSelect">
+            <option value="">ทุกหมู่</option>
+          </select>
+        </div>
         <div class="control-group">
           <label for="dateSelect">📅 เลือกวันที่:</label>
           <input type="date" id="dateSelect">
@@ -816,6 +822,7 @@
 
             processDateData();
             renderDateSelect();
+            renderMooSelect(rawData);
             
           } catch (error) {
             console.error('Error processing data:', error);
@@ -872,50 +879,123 @@
           input.value = dateList[0].date;
         }
 
-        input.removeEventListener('change', renderOsmoSelect);
-        input.addEventListener('change', renderOsmoSelect);
-        
-        renderOsmoSelect();
+        input.removeEventListener('change', onDateChange);
+        input.addEventListener('change', onDateChange);
+        onDateChange();
+      }
+
+      function onDateChange() {
+        // กรองข้อมูลเฉพาะวันที่ที่เลือก แล้วส่งให้ renderMooSelect
+        const selectedDate = document.getElementById('dateSelect').value;
+        let filteredData = rawData;
+        if (selectedDate) {
+          filteredData = rawData.filter(r => {
+            const d = new Date(r[currentDateCol]);
+            if (isNaN(d.getTime())) return false;
+            const yyyy = d.getFullYear();
+            const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+            const dd = d.getDate().toString().padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            return dateStr === selectedDate;
+          });
+        }
+        renderMooSelect(filteredData);
       }
 
       function renderOsmoSelect() {
         const dateInput = document.getElementById('dateSelect');
         const selectedDate = dateInput.value;
-        
+        const selectedMoo = getSelectedMoo();
+
         if (!selectedDate) {
           document.getElementById('summaryCards').innerHTML = '<div class="no-data">กรุณาเลือกวันที่</div>';
           return;
         }
 
-        const filteredData = rawData.filter(r => {
+        // กรองข้อมูลตามวันที่และหมู่
+        let filteredData = rawData.filter(r => {
           const d = new Date(r[currentDateCol]);
           if (isNaN(d.getTime())) return false;
-          
           const yyyy = d.getFullYear();
           const mm = (d.getMonth() + 1).toString().padStart(2, '0');
           const dd = d.getDate().toString().padStart(2, '0');
           const dateStr = `${yyyy}-${mm}-${dd}`;
-          
           return dateStr === selectedDate;
         });
+        if (selectedMoo) {
+          filteredData = filteredData.filter(r => {
+            let v = r[villageCol] || r['หมู่'] || r['หมู่ที่'] || '';
+            return String(v).trim() === String(selectedMoo).trim();
+          });
+        }
 
         osmoList = [...new Set(filteredData.map(r => r[currentOsmoCol]).filter(Boolean))];
-        
-        const select = document.getElementById('osmoSelect');
-        select.innerHTML = '<option value="">ทั้งหมด</option>';
-        
-        osmoList.forEach(osmo => {
-          const option = document.createElement('option');
-          option.value = osmo;
-          option.textContent = osmo;
-          select.appendChild(option);
-        });
 
+        const select = document.getElementById('osmoSelect');
+        if (osmoList.length === 0) {
+          select.innerHTML = '<option value="">ไม่มีข้อมูล</option>';
+          select.value = '';
+        } else {
+          select.innerHTML = '<option value="">ทั้งหมด</option>';
+          osmoList.forEach(osmo => {
+            const option = document.createElement('option');
+            option.value = osmo;
+            option.textContent = osmo;
+            select.appendChild(option);
+          });
+          select.value = '';
+        }
         select.removeEventListener('change', renderDashboard);
         select.addEventListener('change', renderDashboard);
-        select.value = '';
-        
+
         renderDashboard();
+      }
+
+      // --- หมู่บ้าน Dropdown ---
+      function renderMooSelect(data) {
+        const select = document.getElementById('mooSelect');
+        if (!select) return;
+        // หา unique หมู่
+        const mooSet = new Set();
+        data.forEach(r => {
+          let v = r[villageCol] || r['หมู่'] || r['หมู่ที่'] || '';
+          if (v && v !== 'ไม่ระบุ') mooSet.add(v);
+        });
+        const mooList = Array.from(mooSet).sort((a,b) => String(a).localeCompare(String(b), 'th'));
+        select.innerHTML = '<option value="">ทุกหมู่</option>' + mooList.map(moo => `<option value="${moo}">${moo}</option>`).join('');
+        select.removeEventListener('change', onMooChange);
+        select.addEventListener('change', onMooChange);
+        onMooChange();
+      }
+
+      function onMooChange() {
+        // กรองข้อมูลตามวันที่และหมู่ แล้วส่งให้ renderOsmoSelect
+        const selectedDate = document.getElementById('dateSelect').value;
+        const selectedMoo = getSelectedMoo();
+        let filteredData = rawData;
+        if (selectedDate) {
+          filteredData = rawData.filter(r => {
+            const d = new Date(r[currentDateCol]);
+            if (isNaN(d.getTime())) return false;
+            const yyyy = d.getFullYear();
+            const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+            const dd = d.getDate().toString().padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+            return dateStr === selectedDate;
+          });
+        }
+        if (selectedMoo) {
+          filteredData = filteredData.filter(r => {
+            let v = r[villageCol] || r['หมู่'] || r['หมู่ที่'] || '';
+            return String(v).trim() === String(selectedMoo).trim();
+          });
+        }
+        renderOsmoSelect(filteredData);
+      }
+
+      function getSelectedMoo() {
+        const el = document.getElementById('mooSelect');
+        return el ? el.value : '';
       }
 
       function renderDashboard() {
@@ -923,23 +1003,28 @@
         const osmoSelect = document.getElementById('osmoSelect');
         const selectedDate = dateInput.value;
         const selectedOsmo = osmoSelect.value;
+        const selectedMoo = getSelectedMoo();
 
         if (!selectedDate) return;
 
         let filteredData = rawData.filter(r => {
           const d = new Date(r[currentDateCol]);
           if (isNaN(d.getTime())) return false;
-          
           const yyyy = d.getFullYear();
           const mm = (d.getMonth() + 1).toString().padStart(2, '0');
           const dd = d.getDate().toString().padStart(2, '0');
           const dateStr = `${yyyy}-${mm}-${dd}`;
-          
           return dateStr === selectedDate;
         });
 
         if (selectedOsmo) {
           filteredData = filteredData.filter(r => r[currentOsmoCol] === selectedOsmo);
+        }
+        if (selectedMoo) {
+          filteredData = filteredData.filter(r => {
+            let v = r[villageCol] || r['หมู่'] || r['หมู่ที่'] || '';
+            return String(v).trim() === String(selectedMoo).trim();
+          });
         }
 
         if (filteredData.length === 0) {
@@ -1157,8 +1242,14 @@
             <th>อื่นๆ รายละเอียด</th>
           </tr>`;
 
+        // --- เตรียมตัวแปรรวม ---
+        let sum = {
+          inUse: [0, 0], inDrink: [0, 0], inToilet: [0, 0], inFlower: [0, 0], inOther: [0, 0],
+          outUse: [0, 0], outDrink: [0, 0], outToilet: [0, 0], outFlower: [0, 0], outOther: [0, 0],
+          totalSurvey: 0, totalFound: 0
+        };
+
         data.forEach(r => {
-          // บ้านเลขที่: แสดงค่าตรงจาก Google Sheet โดยไม่แปลง, บังคับเป็น string เสมอ
           let houseNo = r[houseNoCol];
           if (houseNo === undefined || houseNo === null || houseNo === '') {
             houseNo = '-';
@@ -1169,49 +1260,285 @@
           const village = r[villageCol] || '-';
           const surveyor = r[currentOsmoCol] || '-';
 
-          const inUse = `${Number(r['ในอาคาร-น้ำใช้-สำรวจ']) || 0}/${Number(r['ในอาคาร-น้ำใช้-พบลูกน้ำ']) || 0}`;
-          const inDrink = `${Number(r['ในอาคาร-น้ำดื่ม-สำรวจ']) || 0}/${Number(r['ในอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0}`;
-          const inToilet = `${Number(r['ในอาคาร-ห้องน้ำ-สำรวจ']) || 0}/${Number(r['ในอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0}`;
-          const inFlower = `${Number(r['ในอาคาร-แจกันกระถาง-สำรวจ']) || 0}/${Number(r['ในอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0}`;
-          const inOther = `${Number(r['ในอาคาร-อื่นๆ-สำรวจ']) || 0}/${Number(r['ในอาคาร-อื่นๆ-พบลูกน้ำ']) || 0}`;
-          const inOtherDesc = r['ในอาคาร-อื่นๆ-รายละเอียด'] || '';
+          const inUse = [Number(r['ในอาคาร-น้ำใช้-สำรวจ']) || 0, Number(r['ในอาคาร-น้ำใช้-พบลูกน้ำ']) || 0];
+          const inDrink = [Number(r['ในอาคาร-น้ำดื่ม-สำรวจ']) || 0, Number(r['ในอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0];
+          const inToilet = [Number(r['ในอาคาร-ห้องน้ำ-สำรวจ']) || 0, Number(r['ในอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0];
+          const inFlower = [Number(r['ในอาคาร-แจกันกระถาง-สำรวจ']) || 0, Number(r['ในอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0];
+          const inOther = [Number(r['ในอาคาร-อื่นๆ-สำรวจ']) || 0, Number(r['ในอาคาร-อื่นๆ-พบลูกน้ำ']) || 0];
+          let inOtherDesc = r['ในอาคาร-อื่นๆ-รายละเอียด'] || '';
+          if (Array.isArray(inOtherDesc)) inOtherDesc = inOtherDesc.join(', ');
+          if (typeof inOtherDesc === 'string' && inOtherDesc.includes(',')) {
+            inOtherDesc = inOtherDesc.split(',').map(s => s.trim()).filter(Boolean).join('<br>');
+          }
 
-          const outUse = `${Number(r['นอกอาคาร-น้ำใช้-สำรวจ']) || 0}/${Number(r['นอกอาคาร-น้ำใช้-พบลูกน้ำ']) || 0}`;
-          const outDrink = `${Number(r['นอกอาคาร-น้ำดื่ม-สำรวจ']) || 0}/${Number(r['นอกอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0}`;
-          const outToilet = `${Number(r['นอกอาคาร-ห้องน้ำ-สำรวจ']) || 0}/${Number(r['นอกอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0}`;
-          const outFlower = `${Number(r['นอกอาคาร-แจกันกระถาง-สำรวจ']) || 0}/${Number(r['นอกอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0}`;
-          const outOther = `${Number(r['นอกอาคาร-อื่นๆ-สำรวจ']) || 0}/${Number(r['นอกอาคาร-อื่นๆ-พบลูกน้ำ']) || 0}`;
-          const outOtherDesc = r['นอกอาคาร-อื่นๆ-รายละเอียด'] || '';
+          const outUse = [Number(r['นอกอาคาร-น้ำใช้-สำรวจ']) || 0, Number(r['นอกอาคาร-น้ำใช้-พบลูกน้ำ']) || 0];
+          const outDrink = [Number(r['นอกอาคาร-น้ำดื่ม-สำรวจ']) || 0, Number(r['นอกอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0];
+          const outToilet = [Number(r['นอกอาคาร-ห้องน้ำ-สำรวจ']) || 0, Number(r['นอกอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0];
+          const outFlower = [Number(r['นอกอาคาร-แจกันกระถาง-สำรวจ']) || 0, Number(r['นอกอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0];
+          const outOther = [Number(r['นอกอาคาร-อื่นๆ-สำรวจ']) || 0, Number(r['นอกอาคาร-อื่นๆ-พบลูกน้ำ']) || 0];
+          let outOtherDesc = r['นอกอาคาร-อื่นๆ-รายละเอียด'] || '';
+          if (Array.isArray(outOtherDesc)) outOtherDesc = outOtherDesc.join(', ');
+          if (typeof outOtherDesc === 'string' && outOtherDesc.includes(',')) {
+            outOtherDesc = outOtherDesc.split(',').map(s => s.trim()).filter(Boolean).join('<br>');
+          }
 
           const totalSurvey = Number(r['รวมสำรวจ']) || 0;
           const totalFound = Number(r['รวมพบลูกน้ำ']) || 0;
           const ci = totalSurvey > 0 ? (totalFound / totalSurvey) * 100 : 0;
           const ciClass = ci > 10 ? 'ci-high' : ci > 5 ? 'ci-medium' : 'ci-low';
 
+          // รวมค่า
+          sum.inUse[0] += inUse[0]; sum.inUse[1] += inUse[1];
+          sum.inDrink[0] += inDrink[0]; sum.inDrink[1] += inDrink[1];
+          sum.inToilet[0] += inToilet[0]; sum.inToilet[1] += inToilet[1];
+          sum.inFlower[0] += inFlower[0]; sum.inFlower[1] += inFlower[1];
+          sum.inOther[0] += inOther[0]; sum.inOther[1] += inOther[1];
+          sum.outUse[0] += outUse[0]; sum.outUse[1] += outUse[1];
+          sum.outDrink[0] += outDrink[0]; sum.outDrink[1] += outDrink[1];
+          sum.outToilet[0] += outToilet[0]; sum.outToilet[1] += outToilet[1];
+          sum.outFlower[0] += outFlower[0]; sum.outFlower[1] += outFlower[1];
+          sum.outOther[0] += outOther[0]; sum.outOther[1] += outOther[1];
+          sum.totalSurvey += totalSurvey;
+          sum.totalFound += totalFound;
+
           html += `
           <tr>
             <td><strong>${houseNo}</strong></td>
             <td>${village}</td>
             <td>${surveyor}</td>
-            <td>${inUse}</td>
-            <td>${inDrink}</td>
-            <td>${inToilet}</td>
-            <td>${inFlower}</td>
-            <td>${inOther}</td>
-            <td>${inOtherDesc}</td>
-            <td>${outUse}</td>
-            <td>${outDrink}</td>
-            <td>${outToilet}</td>
-            <td>${outFlower}</td>
-            <td>${outOther}</td>
-            <td>${outOtherDesc}</td>
+            <td>${inUse[0]}/${inUse[1]}</td>
+            <td>${inDrink[0]}/${inDrink[1]}</td>
+            <td>${inToilet[0]}/${inToilet[1]}</td>
+            <td>${inFlower[0]}/${inFlower[1]}</td>
+            <td>${inOther[0]}/${inOther[1]}</td>
+            <td>${inOtherDesc ? inOtherDesc : '-'}</td>
+            <td>${outUse[0]}/${outUse[1]}</td>
+            <td>${outDrink[0]}/${outDrink[1]}</td>
+            <td>${outToilet[0]}/${outToilet[1]}</td>
+            <td>${outFlower[0]}/${outFlower[1]}</td>
+            <td>${outOther[0]}/${outOther[1]}</td>
+            <td>${outOtherDesc ? outOtherDesc : '-'}</td>
             <td><strong>${totalSurvey}</strong></td>
             <td><strong>${totalFound}</strong></td>
             <td><strong class="${ciClass}">${ci.toFixed(2)}%</strong></td>
           </tr>`;
         });
 
+        // --- แถวรวม ---
+        const sumCI = sum.totalSurvey > 0 ? (sum.totalFound / sum.totalSurvey) * 100 : 0;
+        const sumCIClass = sumCI > 10 ? 'ci-high' : sumCI > 5 ? 'ci-medium' : 'ci-low';
+
+        html += `
+          <tr style="background:#e0e6ed;font-weight:bold;">
+            <td colspan="3" style="text-align:right;">รวม</td>
+            <td>${sum.inUse[0]}/${sum.inUse[1]}</td>
+            <td>${sum.inDrink[0]}/${sum.inDrink[1]}</td>
+            <td>${sum.inToilet[0]}/${sum.inToilet[1]}</td>
+            <td>${sum.inFlower[0]}/${sum.inFlower[1]}</td>
+            <td>${sum.inOther[0]}/${sum.inOther[1]}</td>
+            <td></td>
+            <td>${sum.outUse[0]}/${sum.outUse[1]}</td>
+            <td>${sum.outDrink[0]}/${sum.outDrink[1]}</td>
+            <td>${sum.outToilet[0]}/${sum.outToilet[1]}</td>
+            <td>${sum.outFlower[0]}/${sum.outFlower[1]}</td>
+            <td>${sum.outOther[0]}/${sum.outOther[1]}</td>
+            <td></td>
+            <td><strong>${sum.totalSurvey}</strong></td>
+            <td><strong>${sum.totalFound}</strong></td>
+            <td><strong class="${sumCIClass}">${sumCI.toFixed(2)}%</strong></td>
+          </tr>
+        `;
+
         html += `</table>`;
+        // --- สรุปการพบลูกน้ำแยกตามประเภท (card summary) ---
+        // เตรียมข้อมูลรวมแต่ละประเภท (เฉพาะ "พบลูกน้ำ")
+        const foundSummary = {
+          'ในอาคาร-น้ำใช้': 0,
+          'ในอาคาร-น้ำดื่ม': 0,
+          'ในอาคาร-ห้องน้ำ': 0,
+          'ในอาคาร-แจกันกระถาง': 0,
+          'ในอาคาร-อื่นๆ': 0,
+          'นอกอาคาร-น้ำใช้': 0,
+          'นอกอาคาร-น้ำดื่ม': 0,
+          'นอกอาคาร-ห้องน้ำ': 0,
+          'นอกอาคาร-แจกันกระถาง': 0,
+          'นอกอาคาร-อื่นๆ': 0
+        };
+        data.forEach(r => {
+          foundSummary['ในอาคาร-น้ำใช้'] += Number(r['ในอาคาร-น้ำใช้-พบลูกน้ำ']) || 0;
+          foundSummary['ในอาคาร-น้ำดื่ม'] += Number(r['ในอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0;
+          foundSummary['ในอาคาร-ห้องน้ำ'] += Number(r['ในอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0;
+          foundSummary['ในอาคาร-แจกันกระถาง'] += Number(r['ในอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0;
+          foundSummary['ในอาคาร-อื่นๆ'] += Number(r['ในอาคาร-อื่นๆ-พบลูกน้ำ']) || 0;
+          foundSummary['นอกอาคาร-น้ำใช้'] += Number(r['นอกอาคาร-น้ำใช้-พบลูกน้ำ']) || 0;
+          foundSummary['นอกอาคาร-น้ำดื่ม'] += Number(r['นอกอาคาร-น้ำดื่ม-พบลูกน้ำ']) || 0;
+          foundSummary['นอกอาคาร-ห้องน้ำ'] += Number(r['นอกอาคาร-ห้องน้ำ-พบลูกน้ำ']) || 0;
+          foundSummary['นอกอาคาร-แจกันกระถาง'] += Number(r['นอกอาคาร-แจกันกระถาง-พบลูกน้ำ']) || 0;
+          foundSummary['นอกอาคาร-อื่นๆ'] += Number(r['นอกอาคาร-อื่นๆ-พบลูกน้ำ']) || 0;
+        });
+
+        // รวมข้อมูลเพิ่มเติม
+        const totalIn = foundSummary['ในอาคาร-น้ำใช้'] + foundSummary['ในอาคาร-น้ำดื่ม'] + foundSummary['ในอาคาร-ห้องน้ำ'] + foundSummary['ในอาคาร-แจกันกระถาง'] + foundSummary['ในอาคาร-อื่นๆ'];
+        const totalOut = foundSummary['นอกอาคาร-น้ำใช้'] + foundSummary['นอกอาคาร-น้ำดื่ม'] + foundSummary['นอกอาคาร-ห้องน้ำ'] + foundSummary['นอกอาคาร-แจกันกระถาง'] + foundSummary['นอกอาคาร-อื่นๆ'];
+        const totalAll = totalIn + totalOut;
+        // อันดับที่พบมากสุด
+        const allTypes = [
+          { label: 'ในอาคาร - น้ำใช้', value: foundSummary['ในอาคาร-น้ำใช้'] },
+          { label: 'ในอาคาร - น้ำดื่ม', value: foundSummary['ในอาคาร-น้ำดื่ม'] },
+          { label: 'ในอาคาร - ห้องน้ำ', value: foundSummary['ในอาคาร-ห้องน้ำ'] },
+          { label: 'ในอาคาร - แจกัน/กระถาง', value: foundSummary['ในอาคาร-แจกันกระถาง'] },
+          { label: 'ในอาคาร - อื่นๆ', value: foundSummary['ในอาคาร-อื่นๆ'] },
+          { label: 'นอกอาคาร - น้ำใช้', value: foundSummary['นอกอาคาร-น้ำใช้'] },
+          { label: 'นอกอาคาร - น้ำดื่ม', value: foundSummary['นอกอาคาร-น้ำดื่ม'] },
+          { label: 'นอกอาคาร - ห้องน้ำ', value: foundSummary['นอกอาคาร-ห้องน้ำ'] },
+          { label: 'นอกอาคาร - แจกัน/กระถาง', value: foundSummary['นอกอาคาร-แจกันกระถาง'] },
+          { label: 'นอกอาคาร - อื่นๆ', value: foundSummary['นอกอาคาร-อื่นๆ'] }
+        ];
+        const sortedTypes = allTypes.slice().sort((a,b)=>b.value-a.value);
+        // เปอร์เซ็นต์แต่ละประเภท
+        const percent = t => totalAll > 0 ? ((t/totalAll)*100).toFixed(1) : '0.0';
+
+        // Pie chart container
+        html += `<div style="display:flex;flex-wrap:wrap;gap:24px;justify-content:center;margin:36px 0 0 0;align-items:flex-start;">
+          <div style="flex:2 1 400px;min-width:320px;max-width:520px;">
+            <div id="pie_chart_found_summary" style="width:100%;height:320px;"></div>
+          </div>
+          <div class="card-summary-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;min-width:320px;">
+            <div class="card card-summary" style="background:linear-gradient(135deg,#f8fafc 60%,#e0e6ed 100%);box-shadow:0 2px 12px rgba(102,126,234,0.08);padding:32px 20px;">
+              <div class="card-title" style="font-weight:bold;font-size:1.15em;color:#667eea;display:flex;align-items:center;gap:8px;justify-content:center;">
+                <span style="font-size:1.5em;">🏠</span> ในอาคาร
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 0 0;font-size:1.05em;">
+                <span>💧 น้ำใช้</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['ในอาคาร-น้ำใช้']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['ในอาคาร-น้ำใช้'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>🥤 น้ำดื่ม</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['ในอาคาร-น้ำดื่ม']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['ในอาคาร-น้ำดื่ม'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>🚽 ห้องน้ำ</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['ในอาคาร-ห้องน้ำ']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['ในอาคาร-ห้องน้ำ'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>🌷 แจกัน/กระถาง</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['ในอาคาร-แจกันกระถาง']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['ในอาคาร-แจกันกระถาง'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>📊 อื่นๆ</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['ในอาคาร-อื่นๆ']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['ในอาคาร-อื่นๆ'])}%)</span>
+              </div>
+              <div style="margin-top:18px;font-size:1.08em;color:#333;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-weight:600;">รวมในอาคาร</span>
+                <b style="color:#667eea;">${totalIn}</b>
+                <span class="card-unit" style="color:#636e72;">ภาชนะ</span>
+              </div>
+            </div>
+            <div class="card card-summary" style="background:linear-gradient(135deg,#f8fafc 60%,#e0e6ed 100%);box-shadow:0 2px 12px rgba(102,126,234,0.08);padding:32px 20px;">
+              <div class="card-title" style="font-weight:bold;font-size:1.15em;color:#00b894;display:flex;align-items:center;gap:8px;justify-content:center;">
+                <span style="font-size:1.5em;">🏡</span> นอกอาคาร
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin:18px 0 0 0;font-size:1.05em;">
+                <span>💧 น้ำใช้</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['นอกอาคาร-น้ำใช้']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['นอกอาคาร-น้ำใช้'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>🥤 น้ำดื่ม</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['นอกอาคาร-น้ำดื่ม']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['นอกอาคาร-น้ำดื่ม'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>🚽 ห้องน้ำ</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['นอกอาคาร-ห้องน้ำ']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['นอกอาคาร-ห้องน้ำ'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>🌷 แจกัน/กระถาง</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['นอกอาคาร-แจกันกระถาง']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['นอกอาคาร-แจกันกระถาง'])}%)</span>
+              </div>
+              <div class="summary-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-size:1.05em;">
+                <span>📊 อื่นๆ</span>
+                <b style="color:#764ba2;min-width:40px;text-align:right;">${foundSummary['นอกอาคาร-อื่นๆ']}</b>
+                <span class="card-unit" style="color:#636e72;font-size:0.95em;">(${percent(foundSummary['นอกอาคาร-อื่นๆ'])}%)</span>
+              </div>
+              <div style="margin-top:18px;font-size:1.08em;color:#333;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-weight:600;">รวมนอกอาคาร</span>
+                <b style="color:#00b894;">${totalOut}</b>
+                <span class="card-unit" style="color:#636e72;">ภาชนะ</span>
+              </div>
+            </div>
+            <div class="card card-summary" style="background:linear-gradient(135deg,#f8fafc 60%,#e0e6ed 100%);box-shadow:0 2px 12px rgba(102,126,234,0.08);padding:32px 20px;min-width:260px;">
+              <div class="card-title" style="font-weight:bold;font-size:1.15em;color:#ff3b30;display:flex;align-items:center;gap:8px;justify-content:center;">
+                <span style="font-size:1.5em;">📦</span> รวมทั้งหมด
+              </div>
+              <div style="margin:18px 0 0 0;font-size:1.15em;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-weight:600;">รวมพบลูกน้ำ</span>
+                <b style="color:#ff3b30;">${totalAll}</b>
+                <span class="card-unit" style="color:#636e72;">ภาชนะ</span>
+              </div>
+              <div style="margin-top:16px;font-size:1.05em;display:flex;align-items:center;justify-content:space-between;">
+                <span style="color:#636e72;">Container Index (CI):</span>
+                <span style="font-weight:600;color:#764ba2;">${(totalAll > 0 && sum.totalSurvey > 0 ? ((totalAll / sum.totalSurvey) * 100).toFixed(2) : '0.00')}%</span>
+              </div>
+              <div style="margin-top:8px;font-size:1.05em;display:flex;align-items:center;justify-content:space-between;">
+                <span style="color:#636e72;">House Index (HI):</span>
+                <span style="font-weight:600;color:#764ba2;">${(sum.totalSurvey > 0 ? (data.filter(r => (Number(r['รวมพบลูกน้ำ']) || 0) > 0).length / data.length * 100).toFixed(2) : '0.00')}%</span>
+              </div>
+              <div style="margin-top:16px;font-size:1.05em;">
+                <span style="color:#636e72;">อันดับที่พบมากสุด:</span><br>
+                <span style="font-weight:600;color:#764ba2;">${sortedTypes[0].label}</span>
+                <span style="color:#333;">(${sortedTypes[0].value} ภาชนะ, ${percent(sortedTypes[0].value)}%)</span>
+              </div>
+              <div style="margin-top:16px;font-size:1.05em;">
+                <span style="color:#636e72;">อันดับรองลงมา:</span><br>
+                <span style="font-weight:600;color:#764ba2;">${sortedTypes[1].label}</span>
+                <span style="color:#333;">(${sortedTypes[1].value} ภาชนะ, ${percent(sortedTypes[1].value)}%)</span>
+              </div>
+              <div style="margin-top:16px;font-size:1.05em;">
+                <span style="color:#636e72;">ประเภทอื่น ๆ:</span>
+                <ul style="margin:8px 0 0 18px;padding:0;font-size:0.98em;">
+                  ${sortedTypes.slice(2,6).map(t=>`<li>${t.label}: <b style='color:#764ba2;'>${t.value}</b> (${percent(t.value)}%)</li>`).join('')}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+        // วาด pie chart ด้วย Google Charts
+        setTimeout(function() {
+          if (window.google && google.visualization) {
+            const pieData = new google.visualization.DataTable();
+            pieData.addColumn('string', 'ประเภท');
+            pieData.addColumn('number', 'จำนวน');
+            pieData.addRows([
+              ['💧 น้ำใช้', foundSummary['ในอาคาร-น้ำใช้'] + foundSummary['นอกอาคาร-น้ำใช้']],
+              ['🥤 น้ำดื่ม', foundSummary['ในอาคาร-น้ำดื่ม'] + foundSummary['นอกอาคาร-น้ำดื่ม']],
+              ['🚽 ห้องน้ำ', foundSummary['ในอาคาร-ห้องน้ำ'] + foundSummary['นอกอาคาร-ห้องน้ำ']],
+              ['🌷 แจกัน/กระถาง', foundSummary['ในอาคาร-แจกันกระถาง'] + foundSummary['นอกอาคาร-แจกันกระถาง']],
+              ['📊 อื่นๆ', foundSummary['ในอาคาร-อื่นๆ'] + foundSummary['นอกอาคาร-อื่นๆ']]
+            ]);
+            const pieOptions = {
+              title: 'สัดส่วนการพบลูกน้ำแต่ละประเภท',
+              pieHole: 0.4,
+              legend: { position: 'right', textStyle: { fontSize: 15 } },
+              chartArea: { left: 10, top: 40, width: '90%', height: '80%' },
+              colors: ['#667eea','#764ba2','#00b894','#ffd600','#ff3b30'],
+              fontName: 'Sarabun, Noto Sans Thai, Arial',
+              backgroundColor: 'transparent',
+              titleTextStyle: { fontSize: 18, color: '#333', bold: true }
+            };
+            const pieChart = new google.visualization.PieChart(document.getElementById('pie_chart_found_summary'));
+            pieChart.draw(pieData, pieOptions);
+          }
+        }, 200);
+
         document.getElementById('table_div').innerHTML = html;
       }
 
