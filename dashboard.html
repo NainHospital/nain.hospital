@@ -6,6 +6,33 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+    /* รองรับธีมมืดของอุปกรณ์ */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --white: #181a1b;
+        --light-bg: #23272a;
+        --text-dark: #f1f1f1;
+        --text-muted: #b0b3b8;
+        --border-color: #333a40;
+        --gradient-bg: linear-gradient(135deg, #23272a 0%, #181a1b 100%);
+        --gradient-card: linear-gradient(135deg, #23272a 0%, #181a1b 100%);
+      }
+      body, .container, .header, .card, .village-card, input, select, textarea, button, .btn {
+        background: #181a1b !important;
+        color: #f1f1f1 !important;
+        border-color: #333a40 !important;
+      }
+      .header {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      }
+      .card, .village-card {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      }
+      ::placeholder {
+        color: #b0b3b8 !important;
+        opacity: 1;
+      }
+    }
     /* ===== CSS Variables ===== */
     :root {
       --primary-color: #667eea;
@@ -675,6 +702,88 @@
   <body>
     <div class="container">
       <div class="header">
+        <button onclick="window.history.back()" class="back-btn" aria-label="ย้อนกลับ">
+          <span class="back-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M14.5 18L8 11L14.5 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="back-text">ย้อนกลับ</span>
+        </button>
+    <style>
+    .back-btn {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      padding: 8px 18px 8px 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 1.5px solid #bbb;
+      background: #fff;
+      color: #222;
+      cursor: pointer;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    .back-btn:hover {
+      background: #f0f0f0;
+      border-color: #888;
+    }
+    .back-icon {
+      display: flex;
+      align-items: center;
+      height: 22px;
+    }
+    .back-text {
+      font-size: 1em;
+      font-family: inherit;
+    }
+    @media (prefers-color-scheme: dark) {
+      .back-btn {
+        background: #23272a;
+        color: #f1f1f1;
+        border-color: #444;
+      }
+      .back-btn:hover {
+        background: #181a1b;
+        border-color: #888;
+      }
+    }
+    </style>
+    <style>
+    .back-btn {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      padding: 8px 18px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 1.5px solid #bbb;
+      background: #fff;
+      color: #222;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+    }
+    .back-btn:hover {
+      background: #f0f0f0;
+      border-color: #888;
+    }
+    @media (prefers-color-scheme: dark) {
+      .back-btn {
+        background: #23272a;
+        color: #f1f1f1;
+        border-color: #444;
+      }
+      .back-btn:hover {
+        background: #181a1b;
+        border-color: #888;
+      }
+    }
+    </style>
         <h1>📊 Dashboard สำรวจลูกน้ำยุงลาย รพ.สต.นาอิน</h1>
         <p class="subtitle">ระบบติดตามและวิเคราะห์ข้อมูลการสำรวจ</p>
       </div>
