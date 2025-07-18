@@ -691,7 +691,7 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
                      min="0"
                      inputmode="numeric"
                      pattern="[0-9]*"
-                     style="width: 60px; text-align: right;">
+                     style="width: 100px; text-align: right;">
               <label style="font-size: 1.2em; padding: 0 2px;">/</label>
               <input type="number"
                      class="house-input house-no-sub"
@@ -701,7 +701,7 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
                      min="0"
                      inputmode="numeric"
                      pattern="[0-9]*"
-                     style="width: 50px; text-align: left;">
+                     style="width: 100px; text-align: left;">
             </div>
           </div>
           ${houseNum > 1 ? `<button type="button" class="delete-btn" onclick="deleteHouse(${houseNum})" title="ลบบ้านนี้">×</button>` : ''}
@@ -960,6 +960,24 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
           // Blur: ถ้าค่าว่าง ให้ใส่ 0
           input.addEventListener('blur', function() {
             if (this.value === '') this.value = '0';
+          });
+        });
+
+        // บังคับรายละเอียดอื่นๆ ให้ใส่ได้เฉพาะตัวอักษร (no numbers)
+        houseSection.querySelectorAll('.in-other-detail, .out-other-detail').forEach(input => {
+          input.setAttribute('pattern', '^[^0-9]+$');
+          input.setAttribute('title', 'กรุณากรอกเฉพาะตัวอักษร');
+          input.addEventListener('input', function() {
+            const warning = input.closest('.location-group').querySelector('.in-other-warning, .out-other-warning');
+            if (/\d/.test(this.value)) {
+              this.value = this.value.replace(/\d+/g, '');
+              if (warning) {
+                warning.style.display = 'block';
+                warning.textContent = 'ไม่สามารถกรอกตัวเลขในรายละเอียดอื่นๆ';
+              }
+            } else {
+              if (warning) warning.style.display = 'none';
+            }
           });
         });
       }, 100);
