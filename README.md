@@ -1300,7 +1300,7 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
           Swal.fire({
             icon: 'error',
             title: 'บ้านเลขที่ซ้ำ',
-            html: `บ้านเลขที่ต่อไปนี้มีการบันทึกแล้วในวันนี้:<br><b>${duplicateHouseNos.join(', ')}</b><br>กรุณาตรวจสอบ`,
+            html: `บ้านเลขที่ต่อไปนี้มีการบันทึกแล้วในวันนี้:<br><b>${duplicateHouseNos.join(', ')}</b><br>กรุณาตรวจสอบ<br><br><span style='color:#555'>ผู้ที่กรอกบ้านเลขที่นี้ก่อนหน้า: <b>${typeof surveyor !== 'undefined' ? surveyor : '-'}</b></span>`,
             confirmButtonText: 'ตกลง',
           });
           window._isSubmitting = false;
