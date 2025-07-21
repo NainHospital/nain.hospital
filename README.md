@@ -588,9 +588,10 @@
     const errorMessage = document.getElementById('errorMessage');
     
     let rowCounter = 0;
-    // เพิ่มตัวแปรเก็บข้อมูลบ้านที่สำรวจแล้ว
+    // เพิ่มตัวแปรเก็บข้อมูลบ้านที่สำรวจแล้ว และผู้กรอก
     let existingHouses = [];
-    let houseNoCol = null, villageCol = null, dateCol = null;
+    let existingHouseSurveyors = {};
+    let houseNoCol = null, villageCol = null, dateCol = null, surveyorCol = null;
 
     // โหลด Google Charts (ใช้สำหรับโหลดข้อมูล gviz)
     google.charts.load('current', { packages: ['corechart', 'table'], language: 'th' });
@@ -612,6 +613,7 @@ function normalizeHouseNo(str) {
 function loadExistingHouses(selectedVillage, selectedDate, callback) {
   const query = new google.visualization.Query(sheetUrl);
   query.send(function(response) {
+    existingHouseSurveyors = {};
     if (response.isError()) {
       existingHouses = [];
       if (callback) callback();
@@ -626,8 +628,10 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
       houseNoCol = findColumn(cols, ['บ้านเลขที่', 'houseNos', 'เลขที่', 'house_no']);
       villageCol = findColumn(cols, ['หมู่', 'village', 'หมู่ที่', 'village_no']);
       dateCol = findColumn(cols, ['วันที่สำรวจ', 'วันที่', 'surveyDate']);
-      if (!houseNoCol || !villageCol || !dateCol) {
+      surveyorCol = findColumn(cols, ['ผู้สำรวจ', 'surveyor', 'ผู้กรอก', 'recorded_by']);
+      if (!houseNoCol || !villageCol || !dateCol || !surveyorCol) {
         existingHouses = [];
+        existingHouseSurveyors = {};
         if (callback) callback();
         return;
       }
@@ -636,6 +640,7 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
         const rowVillage = dataTable.getValue(i, cols.indexOf(villageCol));
         const rowDateRaw = dataTable.getValue(i, cols.indexOf(dateCol));
         const rowHouse = dataTable.getValue(i, cols.indexOf(houseNoCol));
+        const rowSurveyor = dataTable.getValue(i, cols.indexOf(surveyorCol));
         let d = new Date(rowDateRaw);
         if (isNaN(d.getTime())) continue;
         const yyyy = d.getFullYear();
@@ -643,12 +648,15 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
         const dd = d.getDate().toString().padStart(2, '0');
         const dateStr = `${yyyy}-${mm}-${dd}`;
         if (String(rowVillage) === String(selectedVillage) && dateStr === selectedDate && rowHouse) {
-          houses.push(normalizeHouseNo(rowHouse));
+          const normHouse = normalizeHouseNo(rowHouse);
+          houses.push(normHouse);
+          existingHouseSurveyors[normHouse] = rowSurveyor || '-';
         }
       }
       existingHouses = houses;
     } catch (e) {
       existingHouses = [];
+      existingHouseSurveyors = {};
     }
     if (callback) callback();
   });
