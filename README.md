@@ -1297,10 +1297,19 @@ function loadExistingHouses(selectedVillage, selectedDate, callback) {
         }
         // ถ้าพบบ้านเลขที่ซ้ำกับในฐานข้อมูล
         if (duplicateHouseNos.length > 0) {
+          // สร้างตารางแสดงชื่อผู้กรอกแต่ละบ้านเลขที่
+          let nameTable = `<table style='width:100%;border-collapse:collapse;background:#f8f9fa;border-radius:8px;margin-top:8px;'>`;
+          nameTable += `<tr style='background:#e1e8ff;color:#333;font-weight:bold;'><td style='padding:8px;border-bottom:1px solid #ddd;'>🏠 บ้านเลขที่</td><td style='padding:8px;border-bottom:1px solid #ddd;'>👤 ผู้กรอก</td></tr>`;
+          duplicateHouseNos.forEach(houseNo => {
+            const normHouse = normalizeHouseNo(houseNo);
+            const name = existingHouseSurveyors[normHouse] || '-';
+            nameTable += `<tr><td style='padding:8px;border-bottom:1px solid #eee;text-align:center;'>${houseNo}</td><td style='padding:8px;border-bottom:1px solid #eee;text-align:center;color:#2d5016;font-weight:500;'>${name}</td></tr>`;
+          });
+          nameTable += `</table>`;
           Swal.fire({
             icon: 'error',
             title: 'บ้านเลขที่ซ้ำ',
-            html: `บ้านเลขที่ต่อไปนี้มีการบันทึกแล้วในวันนี้:<br><b>${duplicateHouseNos.join(', ')}</b><br>กรุณาตรวจสอบ<br><br><span style='color:#555'>ผู้ที่กรอกบ้านเลขที่นี้ก่อนหน้า: <b>${typeof surveyor !== 'undefined' ? surveyor : '-'}</b></span>`,
+            html: `<div style='font-size:1.1em;margin-bottom:8px;'>บ้านเลขที่ต่อไปนี้มีการบันทึกแล้วในวันนี้<br><span style='color:#ff3b30;font-weight:bold;'>กรุณาตรวจสอบ</span></div>${nameTable}`,
             confirmButtonText: 'ตกลง',
           });
           window._isSubmitting = false;
