@@ -1653,40 +1653,6 @@
                 <span class="card-unit" style="color:#636e72;">ภาชนะ</span>
               </div>
             </div>
-            <div class="card">
-              <div class="card-title" style="font-weight:bold;font-size:1.15em;color:#ff3b30;display:flex;align-items:center;gap:8px;justify-content:center;">
-                <span style="font-size:1.5em;">📦</span> รวมทั้งหมด
-              </div>
-              <div style="margin:18px 0 0 0;font-size:1.15em;display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-weight:600;">รวมพบลูกน้ำ</span>
-                <b style="color:#ff3b30;">${totalAll}</b>
-                <span class="card-unit" style="color:#636e72;">ภาชนะ</span>
-              </div>
-              <div style="margin-top:16px;font-size:1.05em;display:flex;align-items:center;justify-content:space-between;">
-                <span style="color:#636e72;">Container Index (CI):</span>
-                <span style="font-weight:600;color:#764ba2;">${(totalAll > 0 && sum.totalSurvey > 0 ? ((totalAll / sum.totalSurvey) * 100).toFixed(2) : '0.00')}%</span>
-              </div>
-              <div style="margin-top:8px;font-size:1.05em;display:flex;align-items:center;justify-content:space-between;">
-                <span style="color:#636e72;">House Index (HI):</span>
-                <span style="font-weight:600;color:#764ba2;">${(sum.totalSurvey > 0 ? (data.filter(r => (Number(r['รวมพบลูกน้ำ']) || 0) > 0).length / data.length * 100).toFixed(2) : '0.00')}%</span>
-              </div>
-              <div style="margin-top:16px;font-size:1.05em;">
-                <span style="color:#636e72;">อันดับที่พบมากสุด:</span><br>
-                <span style="font-weight:600;color:#764ba2;">${sortedTypes[0].label}</span>
-                <span style="color:#333;">(${sortedTypes[0].value} ภาชนะ, ${percent(sortedTypes[0].value)}%)</span>
-              </div>
-              <div style="margin-top:16px;font-size:1.05em;">
-                <span style="color:#636e72;">อันดับรองลงมา:</span><br>
-                <span style="font-weight:600;color:#764ba2;">${sortedTypes[1].label}</span>
-                <span style="color:#333;">(${sortedTypes[1].value} ภาชนะ, ${percent(sortedTypes[1].value)}%)</span>
-              </div>
-              <div style="margin-top:16px;font-size:1.05em;">
-                <span style="color:#636e72;">ประเภทอื่น ๆ:</span>
-                <ul style="margin:8px 0 0 18px;padding:0;font-size:0.98em;">
-                  ${sortedTypes.slice(2,6).map(t=>`<li>${t.label}: <b style='color:#764ba2;'>${t.value}</b> (${percent(t.value)}%)</li>`).join('')}
-                </ul>
-              </div>
-            </div>
           </div>
         </div>`;
 
