@@ -29,10 +29,16 @@
       max-width: 400px;
       text-align: center;
     }
+    .logo {
+      width: 360px;
+      height: auto;
+      border-radius: 16px;
+      margin-bottom: 24px;
+    }
     h1 {
-      color: #667eea;
+      color: #92161a;
       margin-bottom: 32px;
-      font-size: 2em;
+      font-size: 1.8em;
     }
     .menu-btn {
       display: block;
@@ -42,7 +48,7 @@
       font-size: 1.15em;
       font-weight: bold;
       color: #fff;
-      background: linear-gradient(90deg, #667eea 60%, #764ba2 100%);
+      background: linear-gradient(90deg, #c52326 60%, #92161a 100%);
       border: none;
       border-radius: 10px;
       cursor: pointer;
@@ -50,7 +56,7 @@
       box-shadow: 0 2px 8px rgba(102,126,234,0.08);
     }
     .menu-btn:hover {
-      background: linear-gradient(90deg, #764ba2 60%, #667eea 100%);
+      background: linear-gradient(90deg, #92161a 60%, #c52326 100%);
       transform: translateY(-2px) scale(1.03);
     }
     .menu-icon {
@@ -62,9 +68,21 @@
 </head>
 <body>
   <div class="menu-container">
+    <!-- รูปภาพโลโก้ -->
+    <img src="https://raw.githubusercontent.com/NainHospital/nain.hospital/refs/heads/main/logo.png" alt="โลโก้ รพ.สต.นาอิน" class="logo">
+    
     <h1>ระบบกรอกข้อมูลและรายงานผลลูกน้ำยุงลาย รพ.สต.นาอิน</h1>
-    <a href="/nain.hospital/"><button class="menu-btn"><span class="menu-icon">📝</span> แบบบันทึกลูกน้ำยุงลาย</button></a>
-    <a href="dashboard.html"><button class="menu-btn"><span class="menu-icon">📊</span> Dashboard : สรุปผลการสำรวจ</button></a>
+    
+    <a href="form.html">
+      <button class="menu-btn">
+        <span class="menu-icon">📝</span> แบบบันทึกลูกน้ำยุงลาย
+      </button>
+    </a>
+    <a href="dashboard.html">
+      <button class="menu-btn">
+        <span class="menu-icon">📊</span> Dashboard : สรุปผลการสำรวจ
+      </button>
+    </a>
   </div>
 </body>
 </html>
